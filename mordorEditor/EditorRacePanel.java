@@ -7,6 +7,7 @@ import mordorData.Race;
 
 import structures.ListNode;
 import structures.QuadNode;
+import structures.SkipIter;
 
 public class EditorRacePanel extends JPanel 
 {
@@ -22,14 +23,13 @@ public class EditorRacePanel extends JPanel
 		raceTabs = new JTabbedPane();
 		racePanes = new EditorRacePane[dataBank.getRaces().getSize()];
 		
-		QuadNode<Race> tNode = dataBank.getRaces().firstNode();
+		SkipIter<Race> tNode = dataBank.getRaces().getIterator();
 		byte i = 0;
-		while(tNode.getRight() != null)
+		while(tNode.next())
 		{
-			racePanes[i] = new EditorRacePane(this, tNode.getElement(), dataBank);
-			raceTabs.add(tNode.getElement().getName(), racePanes[i]);
+			racePanes[i] = new EditorRacePane(this, tNode.element(), dataBank);
+			raceTabs.add(tNode.element().getName(), racePanes[i]);
 			i += 1;
-			tNode = tNode.getRight();
 		}
 
 		add(raceTabs);
@@ -80,14 +80,13 @@ public class EditorRacePanel extends JPanel
 		raceTabs = new JTabbedPane();
 		racePanes = new EditorRacePane[dataBank.getRaces().getSize()];
 		
-		QuadNode<Race> tNode = dataBank.getRaces().firstNode();
+		SkipIter<Race> tNode = dataBank.getRaces().getIterator();
 		byte i = 0;
-		while(tNode.getRight() != null)
+		while(tNode.next())
 		{
-			racePanes[i] = new EditorRacePane(this, tNode.getElement(), dataBank);
-			raceTabs.add(tNode.getElement().getName(), racePanes[i]);
+			racePanes[i] = new EditorRacePane(this, tNode.element(), dataBank);
+			raceTabs.add(tNode.element().getName(), racePanes[i]);
 			i += 1;
-			tNode = tNode.getRight();
 		}
 		this.add(raceTabs);
 		this.revalidate();

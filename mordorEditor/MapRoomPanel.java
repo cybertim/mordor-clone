@@ -18,6 +18,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
 import structures.LinkedList;
+import structures.ListIter;
 import structures.ListNode;
 
 import mordorData.Chest;
@@ -346,16 +347,15 @@ public class MapRoomPanel extends JPanel implements ActionListener
 			tfChestTrapLevel.setEnabled(true);
 			isMagicLock.setEnabled(true);
 			
-			ListNode<ItemInstance> iNode = chest.getItems().getFirstNode();
+			ListIter<ItemInstance> iNode = chest.getItems().getIterator();
 			int count = 0;
-			while(iNode != null)
+			while(iNode.next())
 			{
-				if(iNode.getElement() != null)
-					tfChestItems[count].setText(iNode.getElement().getItem().getName());
+				if(iNode.element() != null)
+					tfChestItems[count].setText(iNode.element().getItem().getName());
 				else
 					tfChestItems[count].setText("");
 				
-				iNode = iNode.getNext();
 				count++;
 			}
 			
@@ -382,22 +382,19 @@ public class MapRoomPanel extends JPanel implements ActionListener
 		}
 		
 		// Update the monsters
-		ListNode<LinkedList<MonsterInstance>> mNode = room.getMonsterStacks().getFirstNode();
+		ListIter<LinkedList<MonsterInstance>> mNode = room.getMonsterStacks().getIterator();
 		for(byte i = 0; i < tfMonsters.length; i++)
 		{
-			if(mNode!= null)
+			if(mNode.next())
 			{
-				tfMonsters[i].setText(mNode.getElement().getFirst().getMonster().getName());
-				tfMonsterCounts[i].setText("" + mNode.getElement().getSize());
+				tfMonsters[i].setText(mNode.element().getFirst().getMonster().getName());
+				tfMonsterCounts[i].setText("" + mNode.element().getSize());
 			}
 			else
 			{
 				tfMonsters[i].setText("");
 				tfMonsterCounts[i].setText("");
 			}
-			
-			if(mNode != null)
-				mNode = mNode.getNext();
 		}
 		
 		for(MonsterClass mc : MonsterClass.values())

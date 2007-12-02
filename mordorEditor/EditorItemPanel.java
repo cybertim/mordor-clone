@@ -5,20 +5,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 import mordorData.DataBank;
-import mordorData.Guild;
 import mordorData.Item;
 import mordorData.ItemSpecials;
 import mordorData.Map;
-import mordorData.Player;
-import mordorData.Race;
 import mordorData.Spell;
-import mordorData.SpellBook;
 import mordorData.SpellReference;
 import mordorEnums.Alignment;
+import mordorEnums.BodyParts;
 import mordorEnums.ItemTypes;
 import mordorEnums.PlayerState;
 import mordorEnums.Resistance;
@@ -37,7 +32,7 @@ public class EditorItemPanel extends JPanel implements ActionListener
 	private JComboBox jcItemClass, jcItems;
 	private JTextArea taDescription;
 	private JCheckBox[] cbAlignment;
-	private JCheckBox cbCursed, cbTwoHanded;
+	private JCheckBox cbCursed, cbTwoHanded, cbUnaligned;
 	private JTextField tfLevel, tfChance, tfSwings, tfAttack, tfDefense, tfDamageMod, tfItemValue;
 	private JTextField[] tfStatRequirement, tfStatAdjustment;
 	private JScrollPane spGuild;
@@ -67,6 +62,7 @@ public class EditorItemPanel extends JPanel implements ActionListener
 		jbRemoveItem.addActionListener(this);
 		jbUpdateItem.addActionListener(this);
 		jbName.addActionListener(this);
+		jcItems.addActionListener(this);
 		
 		jbAddItem.setToolTipText("Add a new item");
 		jbRemoveItem.setToolTipText("Remove this item");
@@ -77,25 +73,32 @@ public class EditorItemPanel extends JPanel implements ActionListener
 		itemBar.add(jbUpdateItem);
 		itemBar.add(jbName);
 		itemBar.add(jcItemClass);
+		itemBar.add(jcItems);
 		
 		updateItemList();
 
 		JPanel booleanCol = new JPanel();
-		booleanCol.setLayout(new GridLayout(5, 1));
+		booleanCol.setLayout(new GridLayout(6, 1));
 		
 		cbAlignment = new JCheckBox[Alignment.values().length];
 		for(Alignment al : Alignment.values())
 		{
 			cbAlignment[al.value()] = new JCheckBox(al.name());
 			cbAlignment[al.value()].setToolTipText("Requires " + al.name() + " alignment.");
+			cbAlignment[al.value()].addActionListener(this);
 			booleanCol.add(cbAlignment[al.value()]);
 		}
+		cbUnaligned = new JCheckBox("Unaligned");
 		cbCursed = new JCheckBox("Cursed");
 		cbTwoHanded = new JCheckBox("2-Hands");
 		
 		cbCursed.setToolTipText("Cursed Item");
 		cbTwoHanded.setToolTipText("Uses two hands.");
+		cbUnaligned.setToolTipText("Unaligned item.");
 		
+		cbUnaligned.addActionListener(this);
+		
+		booleanCol.add(cbUnaligned);
 		booleanCol.add(cbCursed);
 		booleanCol.add(cbTwoHanded);
 
@@ -294,12 +297,18 @@ public class EditorItemPanel extends JPanel implements ActionListener
 		
 		jbName.setText("Name: " + item.getName());
 		
+		cbUnaligned.setSelected(item.isUnaligned());
 		for(Alignment al : Alignment.values())
-			cbAlignment[al.value()].setSelected(item.getAlignment(al));
+		{
+			if(item.isUnaligned())
+				cbAlignment[al.value()].setSelected(true);
+			else
+				cbAlignment[al.value()].setSelected(item.getAlignment(al));
+		}
 		
 		cbCursed.setSelected(item.isCursed());
 		
-		cbTwoHanded.setEnabled(item.getItemType().isWeapon());
+		cbTwoHanded.setEnabled(item.getItemType().getEquippingPart() == BodyParts.Weapon);
 		cbTwoHanded.setSelected(item.isTwoHanded());
 		
 		for(Stats st : Stats.values())
@@ -311,11 +320,11 @@ public class EditorItemPanel extends JPanel implements ActionListener
 		tfLevel.setText("" + item.getMinimumLevel());
 		tfChance.setText("" + item.getChance());
 		tfSwings.setText("" + item.getSwings());
-		tfSwings.setEnabled(item.getItemType().isWeapon());
+		tfSwings.setEnabled(item.getItemType().getEquippingPart() == BodyParts.Weapon);
 		tfAttack.setText("" + item.getAttackModifier());
 		tfDefense.setText("" + item.getDefenseModifier());
 		tfDamageMod.setText("" + item.getDamageModifier());
-		tfDamageMod.setEnabled(item.getItemType().isWeapon());
+		tfDamageMod.setEnabled(item.getItemType().getEquippingPart() == BodyParts.Weapon);
 		tfItemValue.setText("" + item.getItemBaseValue());
 		
 		guildPane.updatePane(item);
@@ -339,8 +348,14 @@ public class EditorItemPanel extends JPanel implements ActionListener
 		if(!validityCheck())
 			return false;
 		
+		item.setUnaligned(cbUnaligned.isSelected());
 		for(Alignment al : Alignment.values())
-			item.setAlignment(al, cbAlignment[al.value()].isSelected());
+		{
+			if(cbUnaligned.isSelected())
+				item.setAlignment(al, true);
+			else
+				item.setAlignment(al, cbAlignment[al.value()].isSelected());
+		}
 		
 		item.setCursed(cbCursed.isSelected());
 		item.setTwoHanded(cbTwoHanded.isSelected());
@@ -612,7 +627,6 @@ public class EditorItemPanel extends JPanel implements ActionListener
 	 */
 	public void updateItemList()
 	{
-		itemBar.remove(jcItems);
 		String[] names = dataBank.getItemNamesInClass(ItemTypes.type(jcItemClass.getSelectedIndex()));
 		
 		if(names == null)
@@ -621,16 +635,9 @@ public class EditorItemPanel extends JPanel implements ActionListener
 			tItem.setItemType(ItemTypes.type(jcItemClass.getSelectedIndex()));
 			names = new String[1];
 			names[0] = tItem.getName();
-			jcItems = new JComboBox(names);
 		}
-		else
-			jcItems = new JComboBox(names);
-		
-		jcItems.setPrototypeDisplayValue("A really big name.");
-		
-		jcItems.addActionListener(this);
-		
-		itemBar.add(jcItems);
+	
+		jcItems.setModel(new DefaultComboBoxModel(names));
 		revalidate();
 		repaint();
 	}
@@ -703,6 +710,15 @@ public class EditorItemPanel extends JPanel implements ActionListener
 		{
         	updateItemInPanel();
 		}
+		else if(e.getSource() == cbUnaligned && cbUnaligned.isSelected())
+		{
+			for(byte i = 0; i < this.cbAlignment.length; i++)
+				cbAlignment[i].setSelected(true);
+		}
+		
+		for(byte i = 0; i < cbAlignment.length; i++)
+			if(e.getSource() == cbAlignment[i] && !cbAlignment[i].isSelected())
+				cbUnaligned.setSelected(false);
 		
 		for(byte i = 0; i < jcSpecials.length; i++)
 		{

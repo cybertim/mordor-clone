@@ -10,31 +10,33 @@ import javax.swing.JPanel;
 import javax.swing.Scrollable;
 
 import mordorData.Player;
-import mordorHelpers.Util;
 
 public class SICItemList extends JPanel implements Scrollable
 {
-	private SICItemPanel[] items;
+	//private SICItemPanel[] items;
+	private SICItemLabel[] items;
 	private Player player;
 	private byte selectedIndex;
 	
-	private ItemInstanceTransferHandler transferHandler;
+	//private ItemInstanceTransferHandler transferHandler;
 	
 	public SICItemList(Player nPlayer)
 	{
 		player = nPlayer;
-		transferHandler = new ItemInstanceTransferHandler();
+		//transferHandler = new ItemInstanceTransferHandler();
 		
 		GridLayout nLayout = new GridLayout(Player.MAXITEMSONHAND, 1);
 		nLayout.setHgap(0);
 		
 		setLayout(nLayout);
 		
-		items = new SICItemPanel[Player.MAXITEMSONHAND];
+		//items = new SICItemPanel[Player.MAXITEMSONHAND];
+		items = new SICItemLabel[Player.MAXITEMSONHAND];
 		for(byte i = 0; i < Player.MAXITEMSONHAND; i++)
 		{
-			items[i] = new SICItemPanel(i, player.getItem(i), player.isItemEquipped(i), this);
-			items[i].setTransferHandler(transferHandler);
+			//items[i] = new SICItemPanel(i, player.getItem(i), player.isItemEquipped(i), this);
+			items[i] = new SICItemLabel(i, player, this);
+			//items[i].setTransferHandler(transferHandler);
 			
 			add(items[i]);
 		}
@@ -46,10 +48,10 @@ public class SICItemList extends JPanel implements Scrollable
 	 */
 	public void setIndex(byte newIndex)
 	{
-		this.items[selectedIndex].setBackground(this.getBackground());
+		items[selectedIndex].setBackground(this.getBackground());
 		items[selectedIndex].setBorder(null);
 		selectedIndex = newIndex;
-		this.items[selectedIndex].setBackground(Color.DARK_GRAY);
+		items[selectedIndex].setBackground(Color.DARK_GRAY);
 		items[selectedIndex].setBorder(BorderFactory.createLineBorder(Color.BLACK));
 	}
 	
@@ -78,7 +80,8 @@ public class SICItemList extends JPanel implements Scrollable
 	public void updateItems()
 	{
 		for(byte i = 0; i < items.length; i++)
-			items[i].changeItem(player.getItem(i), player.isItemEquipped(i));
+			items[i].updatePanel();
+			//items[i].changeItem(player.getItem(i), player.isItemEquipped(i));
 	}
 	
 	/**
@@ -86,7 +89,8 @@ public class SICItemList extends JPanel implements Scrollable
 	 */
 	public void updateSelectedItem()
 	{
-		items[selectedIndex].changeItem(player.getItem(selectedIndex), player.isItemEquipped(selectedIndex));
+		//items[selectedIndex].changeItem(player.getItem(selectedIndex), player.isItemEquipped(selectedIndex));
+		items[selectedIndex].changeItem(player.getItem(selectedIndex));
 	}
 	
 	public void itemSwap(byte indexA, byte indexB)
@@ -99,9 +103,8 @@ public class SICItemList extends JPanel implements Scrollable
 		return new Dimension(160, 180);
 	}
 
-	public int getScrollableBlockIncrement(Rectangle visibleRect,
-			int orientation, int direction) {
-		// TODO Auto-generated method stub
+	public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction)
+	{
 		return 40;
 	}
 

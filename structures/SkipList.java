@@ -38,7 +38,15 @@ public class SkipList<E> implements SkipListInterface<E>
 	 */
 	public E first()
 	{
-		QuadNode<E> currentNode = firstNode();
+		if(size < 1)
+			return null;
+		
+		QuadNode<E> currentNode = first;
+		
+		while(currentNode.getBelow() != null)
+			currentNode = currentNode.getBelow();
+		
+		currentNode = currentNode.getRight();
 		return (currentNode != null) ? currentNode.getElement() : null;
 	}
 	
@@ -48,44 +56,52 @@ public class SkipList<E> implements SkipListInterface<E>
 	 */
 	public E last() 
 	{	
-		QuadNode<E> currentNode = lastNode();
+		if(size < 1)
+			return null;
+		
+		QuadNode<E> currentNode = last;
+		while(currentNode.getBelow() != null)
+			currentNode = currentNode.getBelow();
+		
+		currentNode = currentNode.getLeft();
+		
 		return (currentNode != null) ? currentNode.getElement() : null;
 	}
 	
 	/**
-	 * Retrieves the node of the first element in the list.
-	 * @return QuadNode<E> 
+	 * Retrieves an iterator for this skip list.
+	 * Iterator starts at the head.
+	 * @return SkipIter<E> or null if list has no elements.
 	 */
-	public QuadNode<E> firstNode()
+	public SkipIter<E> getIterator()
 	{
+		if(size < 1)
+			return null;
+		
 		QuadNode<E> currentNode = first;
 		
 		while(currentNode.getBelow() != null)
-		{
 			currentNode = currentNode.getBelow();
-		}
 		
-		currentNode = currentNode.getRight();
-		
-		return (currentNode.getKey() != Integer.MAX_VALUE) ? currentNode : null;
+		return new SkipIter<E>(currentNode);
 	}
 	
 	/**
-	 * Retrieves the node with the highest key.
-	 * @return
+	 * Retrieves an iterator for this skip list starting at the end.
+	 * Iterator starts at the tail.
+	 * @return SkipIter<E> or null if list has no elements.
 	 */
-	public QuadNode<E> lastNode()
+	public SkipIter<E> getReverseIterator()
 	{
+		if(size < 1)
+			return null;
+		
 		QuadNode<E> currentNode = last;
 		
 		while(currentNode.getBelow() != null)
-		{
 			currentNode = currentNode.getBelow();
-		}
 		
-		currentNode = currentNode.getLeft();
-
-		return (currentNode.getKey() != Integer.MIN_VALUE) ? currentNode : null;
+		return new SkipIter<E>(currentNode);
 	}
 	
 	/**
@@ -281,7 +297,7 @@ public class SkipList<E> implements SkipListInterface<E>
 	public E remove(Integer sKey) 
 	{
 		QuadNode<E> currentNode = findQuad(sKey);
-		if(currentNode == first || currentNode == null || currentNode == last)
+		if(sKey == first.marker || currentNode == null || sKey == last.marker)
 			return null;
 		
 		size -= 1;

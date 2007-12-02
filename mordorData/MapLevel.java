@@ -2,6 +2,7 @@ package mordorData;
 import mordorEnums.Direction;
 import mordorHelpers.Coord;
 import structures.LinkedList;
+import structures.ListIter;
 import structures.ListNode;
 
 
@@ -28,26 +29,6 @@ public class MapLevel
 		
 		setAllSquaresEmpty(imageBank);
 	}
-	
-	/*
-	/**
-	 * Standard constructor. Specifies x, y size, number of rooms
-	 * and the level this is at.
-	 * @param xSize
-	 * @param ySize
-	 * @param numRooms
-	 * @param nLevel
-	 *//*
-	public MapLevel(byte xSize, byte ySize, byte nLevel)
-	{
-		if(xSize < 1)
-			xSize = 1;
-		if(ySize < 1)
-			ySize = 1;
-		levelSquares = new MapSquare[xSize][ySize];
-		rooms = new LinkedList<Room>();
-		level = nLevel;
-	}/*
 	
 	/**
 	 * Loading constructor.
@@ -160,25 +141,24 @@ public class MapLevel
 			}
 		}
 		
-		ListNode<Room> tNode = rooms.getFirstNode();
+		ListIter<Room> tNode = rooms.getIterator();
 		
-		while(tNode != null)
-		{
-			tNode.getElement().setLevel(newDepth);
-			tNode = tNode.getNext();
-		}
+		while(tNode.next())
+			tNode.element().setLevel(newDepth);
 	}
 	
+	/**
+	 * Retrieve the room specified by the provided room number.
+	 * @param roomNumber
+	 * @return Room or null if no room has the requested room number
+	 */
 	public Room getRoom(int roomNumber)
 	{
-		ListNode<Room> tNode = rooms.getFirstNode();
+		ListIter<Room> tNode = rooms.getIterator();
 		
-		while(tNode != null)
-		{
-			if(tNode.getElement().getRoomNumber() == roomNumber)
-				return tNode.getElement();
-			tNode = tNode.getNext();
-		}
+		while(tNode.next())
+			if(tNode.element().getRoomNumber() == roomNumber)
+				return tNode.element();
 		
 		return null;
 	}
@@ -217,13 +197,12 @@ public class MapLevel
 		{
 			roomNumbers = new Integer[rooms.getSize()];
 			
-			ListNode<Room> tNode = rooms.getFirstNode();
+			ListIter<Room> tNode = rooms.getIterator();
 			int count = 0;
 				
-			while(tNode != null)
+			while(tNode.next())
 			{
-					roomNumbers[count] = tNode.getElement().getRoomNumber();
-					tNode = tNode.getNext();
+					roomNumbers[count] = tNode.element().getRoomNumber();
 					count += 1;
 			}
 		}
@@ -321,18 +300,15 @@ public class MapLevel
 		if(rooms.getSize() <= 1)
 			return;
 		
-		ListNode<Room> tNode = rooms.getFirstNode();
+		ListIter<Room> tNode = rooms.getIterator();
 		
-		while(tNode != null)
+		while(tNode.next())
 		{
-			if(tNode.getElement().getNumberSquares() <= 0 && tNode.getElement().getRoomNumber() != 0)
+			if(tNode.element().getNumberSquares() <= 0 && tNode.element().getRoomNumber() != 0)
 			{
-				Room dRoom = tNode.getElement();
-				tNode = tNode.getNext();
+				Room dRoom = tNode.element();
 				rooms.remove(dRoom);
 			}
-			else
-				tNode = tNode.getNext();
 		}
 	}
 	

@@ -28,6 +28,7 @@ import mordorEnums.SpellClass;
 import mordorEnums.Stats;
 import mordorHelpers.Util;
 
+import structures.ListIter;
 import structures.ListNode;
 
 
@@ -410,7 +411,7 @@ public class EditorGuildPane extends JPanel implements ActionListener, ListDataL
 
 		taDescription.setText(guild.getDescription());
 		
-		ListNode<Race> rNode = guild.getAllowedRaces().getFirstNode();
+		ListIter<Race> rNode = guild.getAllowedRaces().getIterator();
 		DefaultListModel raceModel = (DefaultListModel)raceList.getModel();
 		int size = raceModel.getSize();
 		int count = 0;
@@ -418,17 +419,15 @@ public class EditorGuildPane extends JPanel implements ActionListener, ListDataL
 		for(int i = 0; i < selection.length; i++)
 			selection[i] = false;
 		
-		while(rNode != null)
+		while(rNode.next())
 		{
 			for(int i = 0; i < size; i++)
-				if(((String)raceModel.getElementAt(i)).equalsIgnoreCase(rNode.getElement().getName()))
+				if(((String)raceModel.getElementAt(i)).equalsIgnoreCase(rNode.element().getName()))
 				{
 					selection[i] = true;
 					count++;
 					break;
 				}
-			
-			rNode = rNode.getNext();
 		}
 		
 		int[] vals = new int[count];
@@ -443,15 +442,12 @@ public class EditorGuildPane extends JPanel implements ActionListener, ListDataL
 		
 		raceList.setSelectedIndices(vals);
 		
-		ListNode<SpellReference> sNode = guild.getLearnedSpells().getFirstNode();
+		ListIter<SpellReference> sNode = guild.getLearnedSpells().getIterator();
 		
 		guildSpellLModel = new DefaultListModel();
 		
-		while(sNode != null)
-		{
-			guildSpellLModel.addElement(sNode.getElement().getSpell().getName() + " - " + sNode.getElement().getLevel());
-			sNode = sNode.getNext();
-		}
+		while(sNode.next())
+			guildSpellLModel.addElement(sNode.element().getSpell().getName() + " - " + sNode.element().getLevel());
 		
 		guildSpellList.setModel(guildSpellLModel);
 		
@@ -526,7 +522,7 @@ public class EditorGuildPane extends JPanel implements ActionListener, ListDataL
 		}
 		
 		if(rVals == null || rVals.length < 1)
-			guild.addAllowedRace(dataBank.getRaces().firstNode().getElement());
+			guild.addAllowedRace(dataBank.getRaces().first());
 		
 		SpellReference sTemp;
 		for(int i = 0; i < guildSpellLModel.getSize(); i++)
@@ -675,24 +671,22 @@ public class EditorGuildPane extends JPanel implements ActionListener, ListDataL
 			raceModel.addElement(raceNames[i]);
 		raceList.setModel(raceModel);
 		
-		ListNode<Race> rNode = guild.getAllowedRaces().getFirstNode();
+		ListIter<Race> rNode = guild.getAllowedRaces().getIterator();
 		int size = raceModel.getSize();
 		int count = 0;
 		boolean[] selection = new boolean[size];
 		for(int i = 0; i < selection.length; i++)
 			selection[i] = false;
 		
-		while(rNode != null)
+		while(rNode.next())
 		{
 			for(int i = 0; i < size; i++)
-				if(((String)raceModel.getElementAt(i)).equalsIgnoreCase(rNode.getElement().getName()))
+				if(((String)raceModel.getElementAt(i)).equalsIgnoreCase(rNode.element().getName()))
 				{
 					selection[i] = true;
 					count++;
 					break;
 				}
-			
-			rNode = rNode.getNext();
 		}
 		
 		int[] vals = new int[count];

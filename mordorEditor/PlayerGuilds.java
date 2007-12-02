@@ -17,8 +17,10 @@ import javax.swing.JTextField;
 import javax.swing.Scrollable;
 
 import structures.LinkedList;
+import structures.ListIter;
 import structures.ListNode;
 import structures.QuadNode;
+import structures.SkipIter;
 
 import mordorData.Guild;
 import mordorData.GuildRecord;
@@ -133,7 +135,7 @@ public class PlayerGuilds extends JPanel implements ActionListener, Scrollable, 
 		int gCount = parent.dataBank.getGuildCount();
 		removeAll();
 		setLayout(new GridLayout(gCount, 1));
-		QuadNode<Guild> gNode = parent.dataBank.getGuilds().firstNode();
+		SkipIter<Guild> gNode = parent.dataBank.getGuilds().getIterator();
 		
 		guildNames = new JLabel[gCount];
 		guildQuestTarget = new JLabel[gCount];
@@ -150,9 +152,9 @@ public class PlayerGuilds extends JPanel implements ActionListener, Scrollable, 
 		
 		for(byte i = 0; i < gCount; i++)
 		{
-			JPanel guildPanel = getGuildPanel(gNode.getElement().getName(), i);
+			gNode.next();
+			JPanel guildPanel = getGuildPanel(gNode.element().getName(), i);
 			add(guildPanel);
-			gNode = gNode.getRight();
 		}
 		
 		return true;
@@ -167,34 +169,34 @@ public class PlayerGuilds extends JPanel implements ActionListener, Scrollable, 
 		// Update layout; resize if guild count differs.
 		// Update guilds (in case guilds have been added/removed)
 		// Update guild info.
-		ListNode<GuildRecord> gNode = parent.currentPlayer.getGuildRecords().getFirstNode();
+		ListIter<GuildRecord> gNode = parent.currentPlayer.getGuildRecords().getIterator();
 		
 		// problem. player.guildRecords != dataBank.guilds
 		
 		for(byte i = 0; i < guildNames.length; i++)
 			enableGuild(i, false);
 		
-		while(gNode != null)
+		while(gNode.next())
 		{
 			for(byte i = 0; i < guildNames.length; i++)
 			{
-				if(gNode.getElement().getGuild().getName().equalsIgnoreCase(guildNames[i].getText()))
+				if(gNode.element().getGuild().getName().equalsIgnoreCase(guildNames[i].getText()))
 				{
 					// This is the same guild, update this panel.
 					guildMember[i].setSelected(true);
 					enableGuild(i, true);
-					if(gNode.getElement().isQuested())
+					if(gNode.element().isQuested())
 					{
 						guildQuest[i].setEnabled(true);
 						guildQuest[i].setSelected(true);
-						if(gNode.getElement().getQuestMonster() != null)
+						if(gNode.element().getQuestMonster() != null)
 						{
-							guildQuestTarget[i].setText(gNode.getElement().getQuestMonster().getName());
+							guildQuestTarget[i].setText(gNode.element().getQuestMonster().getName());
 							questItem[i] = false;
 						}
 						else
 						{
-							guildQuestTarget[i].setText(gNode.getElement().getQuestItem().getName());
+							guildQuestTarget[i].setText(gNode.element().getQuestItem().getName());
 							questItem[i] = true;
 						}
 						browseItems[i].setEnabled(true);
@@ -209,18 +211,17 @@ public class PlayerGuilds extends JPanel implements ActionListener, Scrollable, 
 						browseMonsters[i].setEnabled(false);
 					}
 					
-					guildAttack[i].setText("" + gNode.getElement().getGuildAttack());
-					guildDefense[i].setText("" + gNode.getElement().getGuildDefense());
-					guildLevel[i].setText("" + gNode.getElement().getLevel());
-					guildXP[i].setText("" + gNode.getElement().getExperience());
-					guildXPNeeded[i].setText("" + gNode.getElement().getXPNeeded());
+					guildAttack[i].setText("" + gNode.element().getGuildAttack());
+					guildDefense[i].setText("" + gNode.element().getGuildDefense());
+					guildLevel[i].setText("" + gNode.element().getLevel());
+					guildXP[i].setText("" + gNode.element().getExperience());
+					guildXPNeeded[i].setText("" + gNode.element().getXPNeeded());
 					
 					for(GuildSkill gs : GuildSkill.values())
-						guildSkills[i][gs.value()].setText("" + gNode.getElement().getGuildSkill(gs));
+						guildSkills[i][gs.value()].setText("" + gNode.element().getGuildSkill(gs));
 					break;
 				}
 			}
-			gNode = gNode.getNext();
 		}
 		return true;
 	}

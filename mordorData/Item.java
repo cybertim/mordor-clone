@@ -13,6 +13,7 @@ import mordorHelpers.Util;
 
 
 import structures.LinkedList;
+import structures.ListIter;
 import structures.ListNode;
 
 
@@ -26,6 +27,7 @@ public class Item
 	private byte[][] stats;
 	private ItemTypes itemType;
 	private boolean[] alignment;
+	private boolean unaligned;
 	private boolean cursed;
 	private short attack, defense;
 	private boolean twoHanded;
@@ -84,9 +86,10 @@ public class Item
 		}
 
 		alignment = new boolean[Alignment.values().length];
-		alignment[Alignment.Good.value()] = true;
-		alignment[Alignment.Neutral.value()] = true;
-		alignment[Alignment.Evil.value()] = true;
+		for(Alignment al : Alignment.values())
+			alignment[al.value()] = true;
+		
+		unaligned = false;
 		
 		guilds = new LinkedList<GuildReference>();
 		
@@ -124,7 +127,7 @@ public class Item
 		
 		desc = "<HTML>This item is a member of the " + itemType.toString() + " class.<BR><BR>";
 		desc += "Offering an A/D of " + attack + "/" + defense + " to a properly aligned character, ";
-		BodyParts bp = Util.getEquippingBodyPart(itemType);
+		BodyParts bp = itemType.getEquippingPart();
 		desc += (bp != BodyParts.Hands) ? " this item requires no hands.<BR><BR>" : (twoHanded) ? " this item requires two hands.<BR><BR>" : " this item requires on hand.<BR><BR>"; 
 		desc += "This item also offers the following when equipped: ";
 		int count = 0;
@@ -150,15 +153,18 @@ public class Item
 			desc += " nothing";
 		desc += "to equip or use, this is a non-Class Restricted Item that is usable by the following Guilds: ";
 		
-		ListNode<GuildReference> tGuild = guilds.getFirstNode();
+		ListIter<GuildReference> tGuild = guilds.getIterator();
+		//ListNode<GuildReference> tGuild = guilds.getFirstNode();
 		count = 0;
-		while(tGuild != null)
+		
+		//while(tGuild != null)
+		while(tGuild.next())
 		{
 			if(count != 0)
 				desc += ", ";
-			desc += tGuild.getElement().getGuild().getName() + " (" + tGuild.getElement().getLevel() + ")";
+			desc += tGuild.element().getGuild().getName() + " (" + tGuild.element().getLevel() + ")";
 			count++;
-			tGuild = tGuild.getNext();
+			//tGuild = tGuild.getNext();
 		}
 		
 		if(count == 0)
@@ -220,11 +226,11 @@ public class Item
 	/**
 	 * Retrieve whether the given alignment is allowed for this item.
 	 * @param nAlignment
-	 * @return true if the alignment is allowed.
+	 * @return true if the alignment is allowed, or if unaligned.
 	 */
 	public boolean getAlignment(Alignment nAlignment)
 	{
-		return alignment[nAlignment.value()];
+		return (unaligned) ? true : alignment[nAlignment.value()];
 	}
 	
 	/**
@@ -233,11 +239,7 @@ public class Item
 	 */
 	public boolean isUnaligned()
 	{
-		for(Alignment al : Alignment.values())
-			if(!alignment[al.value()])
-				return false;
-		
-		return true;
+		return unaligned;
 	}
 	
 	/**
@@ -331,13 +333,14 @@ public class Item
 	
 	public GuildReference getGuild(Guild sGuild)
 	{
-		ListNode<GuildReference> tNode = guilds.getFirstNode();
+		//ListNode<GuildReference> tNode = guilds.getFirstNode();
+		ListIter<GuildReference> tNode = guilds.getIterator();
 		
-		while(tNode != null)
+		while(tNode.next())
 		{
-			if(tNode.getElement().getGuild() == sGuild)
-				return tNode.getElement();
-			tNode = tNode.getNext();
+			if(tNode.element().getGuild() == sGuild)
+				return tNode.element();
+			//tNode = tNode.getNext();
 		}
 		
 		return null;
@@ -556,6 +559,11 @@ public class Item
 		itemValue = newBaseValue;
 	}
 	
+	public void setUnaligned(boolean newUnaligned)
+	{
+		unaligned = newUnaligned;
+	}
+	
 	public ItemInstance createInstance()
 	{
 		return new ItemInstance(this);
@@ -572,6 +580,7 @@ public class Item
 			dos.writeBoolean(alignment[Alignment.Evil.value()]);
 			dos.writeBoolean(cursed);
 			dos.writeBoolean(twoHanded);
+			dos.writeBoolean(unaligned);
 			
 			dos.writeByte(mapLevel);
 			dos.writeByte(chance);
@@ -602,13 +611,12 @@ public class Item
 			
 			dos.writeInt(guilds.getSize());
 			{
-				ListNode<GuildReference> tNode = guilds.getFirstNode();
+				ListIter<GuildReference> tNode = guilds.getIterator();
 				
-				while(tNode != null)
+				while(tNode.next())
 				{
-					dos.writeByte(tNode.getElement().getGuild().getGuildID());
-					dos.writeShort(tNode.getElement().getLevel());
-					tNode = tNode.getNext();
+					dos.writeByte(tNode.element().getGuild().getGuildID());
+					dos.writeShort(tNode.element().getLevel());
 				}
 			}
 			
@@ -637,6 +645,7 @@ public class Item
 			
 			tItem.setCursed(dis.readBoolean());
 			tItem.setTwoHanded(dis.readBoolean());
+			tItem.unaligned = dis.readBoolean();
 			
 			tItem.setMinimumLevel(dis.readByte());
 			tItem.setChance(dis.readByte());

@@ -14,7 +14,8 @@ public enum MordorMessengerDestination
 	MonsterInfo(2),
 	StoreBuy(3),
 	StoreMod(4),
-	Special(5);
+	PlayerSIC(5),
+	Special(6);
 	
 	private byte type;
 	MordorMessengerDestination(int nType) { type = (byte)nType; }

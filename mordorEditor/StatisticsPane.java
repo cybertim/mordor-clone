@@ -13,8 +13,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Scrollable;
 
-import structures.ListNode;
-import structures.QuadNode;
+import structures.ListIter;
+import structures.SkipIter;
 
 import mordorData.DataBank;
 import mordorData.Guild;
@@ -169,7 +169,7 @@ public class StatisticsPane extends JPanel implements ActionListener, Scrollable
 		jlTotLevels.setText("Total dungeon levels: " + dataBank.getMap().getDepth());
 		jlTotRace.setText("Total races: " + dataBank.getRaces().getSize());
 
-		QuadNode<Player> pNode = dataBank.getPlayers().firstNode();
+		SkipIter<Player> pNode = dataBank.getPlayers().getIterator();
 		long totGold = 0;
 		int totItems = 0;
 		int totMons = 0;
@@ -180,56 +180,52 @@ public class StatisticsPane extends JPanel implements ActionListener, Scrollable
 		int totRacePop[] = new int[dataBank.getRaces().getSize()];
 		byte raceIDs[] = new byte[dataBank.getRaces().getSize()];
 		
-		QuadNode<Guild> qNode = dataBank.getGuilds().firstNode();
-		for(int i = 0; qNode.getRight() != null && i < guildIDs.length; i++, qNode = qNode.getRight())
+		SkipIter<Guild> qNode = dataBank.getGuilds().getIterator();
+		for(int i = 0; qNode.next() && i < guildIDs.length; i++)
 		{
-			guildIDs[i] = qNode.getElement().getGuildID();
+			guildIDs[i] = qNode.element().getGuildID();
 			totGuildMembers[i] = 0;
 		}
 		
-		QuadNode<Race> rNode = dataBank.getRaces().firstNode();
-		for(int i = 0; rNode.getRight() != null && i < raceIDs.length; i++, rNode = rNode.getRight())
+		SkipIter<Race> rNode = dataBank.getRaces().getIterator();
+		for(int i = 0; rNode.next() && i < raceIDs.length; i++)
 		{
-			raceIDs[i] = rNode.getElement().getRaceID();
+			raceIDs[i] = rNode.element().getRaceID();
 			totRacePop[i] = 0;
 		}
 		
-		while(pNode.getRight() != null)
+		while(pNode.next())
 		{
-			if(Long.MAX_VALUE - totGold > pNode.getElement().getTotalGold())
-				totGold += pNode.getElement().getTotalGold();
+			if(Long.MAX_VALUE - totGold > pNode.element().getTotalGold())
+				totGold += pNode.element().getTotalGold();
 			else
 				totGold = Long.MAX_VALUE;
-			if(Long.MAX_VALUE - totXp > pNode.getElement().getTotalExperience())
-				totXp += pNode.getElement().getTotalExperience();
+			if(Long.MAX_VALUE - totXp > pNode.element().getTotalExperience())
+				totXp += pNode.element().getTotalExperience();
 			else
 				totGold = Long.MAX_VALUE;
 			int i = 0;
-			for(; i < raceIDs.length && raceIDs[i] != pNode.getElement().getRaceID(); i++);
+			for(; i < raceIDs.length && raceIDs[i] != pNode.element().getRaceID(); i++);
 			
 			totRacePop[i]++;
 			
-			ListNode<GuildRecord> grNode = pNode.getElement().getGuildRecords().getFirstNode();
-			while(grNode != null)
+			ListIter<GuildRecord> grNode = pNode.element().getGuildRecords().getIterator();
+			while(grNode.next())
 			{
 				i = 0;
-				for(; i < guildIDs.length && guildIDs[i] != grNode.getElement().getGuildID(); i++);
+				for(; i < guildIDs.length && guildIDs[i] != grNode.element().getGuildID(); i++);
 				
-				if(Long.MAX_VALUE - totGuildXp[i] > grNode.getElement().getExperience())
-					totGuildXp[i] += grNode.getElement().getExperience();
+				if(Long.MAX_VALUE - totGuildXp[i] > grNode.element().getExperience())
+					totGuildXp[i] += grNode.element().getExperience();
 				else
 					totGuildXp[i] = Long.MAX_VALUE;
 				
 				totGuildMembers[i]++;
-				
-				grNode = grNode.getNext();
 			}
 			
 			for(i = 0; i < Player.MAXCOMPANIONS; i++)
-				if(pNode.getElement().getCompanions()[i] != null)
+				if(pNode.element().getCompanions()[i] != null)
 					totMons++;
-			
-			pNode = pNode.getRight();
 		}
 		jlTotGold.setText("Total gold: " + totGold);
 		jlTotItemInst.setText("Total existing items: " + totItems); // TODO: need to include store

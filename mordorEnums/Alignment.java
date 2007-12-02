@@ -7,19 +7,26 @@ package mordorEnums;
  */
 public enum Alignment
 {
-	Good(0),
-	Neutral(1),
-	Evil(2);
+	Good(0, 'G'),
+	Neutral(1, 'N'),
+	Evil(2, 'E');
 	
 	private byte typeVal;
-	Alignment(int nVal)
+	private char shortName;
+	Alignment(int nVal, char newShortName)
 	{
 		typeVal = (byte)nVal;
+		shortName = newShortName;
 	}
 	
 	public byte value()
 	{
 		return typeVal;
+	}
+	
+	public char shortName()
+	{
+		return shortName;
 	}
 	
 	public static Alignment type(byte nVal)

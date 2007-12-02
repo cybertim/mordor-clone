@@ -5,7 +5,7 @@ import java.awt.GridLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import structures.QuadNode;
+import structures.SkipIter;
 import structures.SkipList;
 
 import mordorData.Player;
@@ -15,17 +15,15 @@ public class PlayerList extends JPanel
 {
 	PlayerList(SkipList<Player> players)
 	{
-		QuadNode<Player> tPlayer = players.firstNode();
+		//QuadNode<Player> tPlayer = players.firstNode();
+		SkipIter<Player> tPlayer = players.getIterator();
 		if(tPlayer == null)
 			add(new JLabel("No players."));
 		else
 		{
 			setLayout(new GridLayout(players.getSize(), 1));
-			while(tPlayer.getRight() != null)
-			{
-				createNewPane(tPlayer.getElement());
-				tPlayer = tPlayer.getRight();
-			}
+			while(tPlayer.next())
+				createNewPane(tPlayer.element());
 		}
 		
 	}

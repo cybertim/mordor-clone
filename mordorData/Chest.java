@@ -5,7 +5,7 @@ import java.io.DataOutputStream;
 import java.util.Random;
 
 import structures.LinkedList;
-import structures.ListNode;
+import structures.ListIter;
 
 import mordorEnums.Trap;
 import mordorHelpers.Util;
@@ -36,7 +36,6 @@ public class Chest
 	
 	private long gold;
 	private LinkedList<ItemInstance> items;
-//	private short itemID;
 	
 	private int lockLevel;
 	private boolean isBox;
@@ -175,12 +174,9 @@ public class Chest
 			if(items != null || items.getSize() < 1)
 			{
 				dos.writeInt(items.getSize());
-				ListNode<ItemInstance> iNode = items.getFirstNode();
-				while(iNode != null)
-				{
-					dos.writeShort(iNode.getElement().getItemID());
-					iNode = iNode.getNext();
-				}
+				ListIter<ItemInstance> iNode = items.getIterator();
+				while(iNode.next())
+					dos.writeShort(iNode.element().getItemID());
 			}
 			else
 				dos.writeInt(Util.NOTHING);

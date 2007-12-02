@@ -11,7 +11,7 @@ import mordorHelpers.Util;
 
 
 import structures.LinkedList;
-import structures.ListNode;
+import structures.ListIter;
 
 /**
  * Guild object for holding guilds.
@@ -193,14 +193,10 @@ public class Guild
 	 */
 	public boolean allowedRace(Race nRace)
 	{
-		ListNode<Race> tRace = allowedRaces.getFirstNode();
-		while(tRace != null)
-		{
-			if(tRace.getElement().getRaceID() == nRace.getRaceID())
+		ListIter<Race> tRace = allowedRaces.getIterator();
+		while(tRace.next())
+			if(tRace.element().getRaceID() == nRace.getRaceID())
 				return true;
-			
-			tRace = tRace.getNext();
-		}
 		
 		return false;
 	}
@@ -254,14 +250,11 @@ public class Guild
 		skillCount++;
 		int[] spellLevel = new int[SpellClass.values().length];
 		for(byte i = 0; i < spellLevel.length; i++) spellLevel[i] = 0;
-		ListNode<SpellReference> tSpell = learnedSpells.getFirstNode();
+		ListIter<SpellReference> tSpell = learnedSpells.getIterator();
 		
-		while(tSpell != null)
-		{
-			if(tSpell.getElement().getLevel() > spellLevel[tSpell.getElement().getSpellClass().value()])
-				spellLevel[tSpell.getElement().getSpellClass().value()] = tSpell.getElement().getLevel();
-			tSpell = tSpell.getNext();
-		}
+		while(tSpell.next())
+			if(tSpell.element().getLevel() > spellLevel[tSpell.element().getSpellClass().value()])
+				spellLevel[tSpell.element().getSpellClass().value()] = tSpell.element().getLevel();
 		
 		double spellCount = 0;
 		for(byte i = 0; i < spellLevel.length; i++)
@@ -437,14 +430,11 @@ public class Guild
 	
 	public void addSpell(SpellReference newSpell)
 	{
-		ListNode<SpellReference> tNode = learnedSpells.getFirstNode();
+		ListIter<SpellReference> tNode = learnedSpells.getIterator();
 		
-		while(tNode != null)
-		{
-			if(tNode.getElement().getSpell() == newSpell.getSpell())
+		while(tNode.next())
+			if(tNode.element().getSpell() == newSpell.getSpell())
 				return;
-			tNode = tNode.getNext();
-		}
 		
 		learnedSpells.insert(newSpell);
 	}
@@ -546,27 +536,23 @@ public class Guild
 				dos.writeShort(-1);
 			
 			{
-				ListNode<Race> tNode = allowedRaces.getFirstNode();
+				ListIter<Race> tNode = allowedRaces.getIterator();
 				
 				dos.writeInt((int)allowedRaces.getSize());
 				
-				while(tNode != null)
-				{
-					dos.writeByte(tNode.getElement().getRaceID());
-					tNode = tNode.getNext();
-				}
+				while(tNode.next())
+					dos.writeByte(tNode.element().getRaceID());
 			}
 			
 			{
-				ListNode<SpellReference> tNode = learnedSpells.getFirstNode();
+				ListIter<SpellReference> tNode = learnedSpells.getIterator();
 				
 				dos.writeInt((int)learnedSpells.getSize());
 				
-				while(tNode != null)
+				while(tNode.next())
 				{
-					dos.writeShort(tNode.getElement().getSpell().getID());
-					dos.writeShort(tNode.getElement().getLevel());
-					tNode = tNode.getNext();
+					dos.writeShort(tNode.element().getSpell().getID());
+					dos.writeShort(tNode.element().getLevel());
 				}
 			}
 			

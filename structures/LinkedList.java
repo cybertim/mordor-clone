@@ -3,11 +3,6 @@ package structures;
 /**
  * New linked list class. Functions as a singly linked list (using insert/remove)
  * or a doubly linked list (using insertFirst/last, removeFirst/last).
- * Additional encapsulation over original linked list. Now stores a
- * recent node that is the last node that was accessed by the using
- * class. getnext/previous will set it to the next node after it
- * then retrieve the stored element. This means the using class does 
- * not need to handle ListNodes.
  * @author August Junkala. March 25, 2007
  *
  * @param <E>	Element type.
@@ -16,7 +11,6 @@ public class LinkedList<E>
 {
 	private ListNode<E> firstNode;
 	private ListNode<E> lastNode;
-	private ListNode<E> recentNode;
 	private Integer size;
 	
 	/**
@@ -25,7 +19,10 @@ public class LinkedList<E>
 	 */
 	public LinkedList()
 	{
-		firstNode = lastNode = recentNode = null;
+		firstNode = new ListNode<E>(null);
+		lastNode = new ListNode<E>(null);
+		firstNode.setNext(lastNode);
+		lastNode.setPrevious(firstNode);
 		size = 0;
 	}
 	
@@ -45,8 +42,6 @@ public class LinkedList<E>
 				size += 1;
 			}
 		}
-		
-		recentNode = null;
 	}
 	
 	/**
@@ -85,18 +80,12 @@ public class LinkedList<E>
 		if(newElement == null)
 			return;
 		
-		if(firstNode == null)
-		{
-			firstNode = new ListNode<E>(newElement, null, null);
-			lastNode = firstNode;
-			
-			size = 1;
-			return;
-		}
-		
-		ListNode<E> newNode = new ListNode<E>(newElement, firstNode, null);
-		firstNode.setPrevious(newNode);
-		firstNode = newNode;
+		// Create a new node between the firstNode and second node.
+		ListNode<E> newNode = new ListNode<E>(newElement, firstNode.getNext(), firstNode);
+		// Update the second node.
+		firstNode.getNext().setPrevious(newNode);
+		// Update the first node.
+		firstNode.setNext(newNode);
 		
 		size += 1;
 	}
@@ -110,44 +99,32 @@ public class LinkedList<E>
 		if(newElement == null)
 			return;
 		
-		if(lastNode == null)
-		{
-			firstNode = new ListNode<E>(newElement, null, null);
-			lastNode = firstNode;
-			
-			size = 1;
-			return;
-		}
-		
-		ListNode<E> newNode = new ListNode<E>(newElement, null, lastNode);
-		lastNode.setNext(newNode);
-		lastNode = newNode;
+		// Create a new node between the second last node and lastNode. 
+		ListNode<E> newNode = new ListNode<E>(newElement, lastNode, lastNode.getPrevious());
+		// Update the second last node.
+		lastNode.getPrevious().setNext(newNode);
+		// Update the lastNode
+		lastNode.setPrevious(newNode);
 		
 		size += 1;
 	}
 	
 	/**
-	 * Retrieves the actual list node holding the first element.
-	 * Advantage: Quicker parsing of list. Avoids problems w/ multiple instances
-	 * 
-	 * @return	ListNode<E>
+	 * Retrieve a starting iterator for this list.
+	 * @return ListIter<E> or null if list is empty
 	 */
-	public ListNode<E> getFirstNode()
+	public ListIter<E> getIterator()
 	{
-		return firstNode;
+		return new ListIter<E>(firstNode);
 	}
 	
 	/**
-	 * Retrieves the actual list node holding the last element.
-	 * Provides a performance boost over use of recent suite when
-	 * list will be accessed several time (necessitating use of getNext(E))
-	 * Warning: Gives direct access to list.
-	 * 
-	 * @return	ListNode<E>
+	 * Retrieve an iterator starting at the end.
+	 * @return ListIter<E> or null if list is empty
 	 */
-	public ListNode<E> getLastNode()
+	public ListIter<E> getReverseIterator()
 	{
-		return lastNode;
+		return new ListIter<E>(lastNode);
 	}
 	
 	/**
@@ -159,8 +136,7 @@ public class LinkedList<E>
 		if(isEmpty())
 			return null;
 		
-		recentNode = firstNode;
-		return firstNode.getElement();
+		return firstNode.getNext().getElement();
 	}
 	
 	/**
@@ -172,86 +148,7 @@ public class LinkedList<E>
 		if(isEmpty())
 			return null;
 		
-		recentNode = lastNode;
-		return lastNode.getElement();
-	}
-	
-	/**
-	 * Retrieves the element following the last element retrieved.
-	 * @return E or null
-	 */
-	public E getNext()
-	{
-		if(recentNode == null)
-			return null;
-		
-		recentNode = recentNode.getNext();
-		
-		return (recentNode == null) ? null : recentNode.getElement();
-	}
-	
-	/**
-	 * Retrieves the element following the provided element.
-	 * @param searchElement	The provided element.
-	 * @return	E
-	 */
-	public E getNext(E searchElement)
-	{
-		recentNode = findNode(searchElement);
-		
-		if(recentNode == null)
-			return null;
-		
-		recentNode = recentNode.getNext();
-		
-		return (recentNode == null) ? null : recentNode.getElement();
-	}
-	
-	public E get(E e)
-	{
-		recentNode = findNode(e);
-		
-		return (recentNode == null) ? null : recentNode.getElement();
-	}
-	
-	/**
-	 * Retrieves the element preceding the last element retrieved.
-	 * @return E or null
-	 */
-	public E getPrevious()
-	{
-		if(recentNode == null)
-			return null;
-		
-		recentNode = recentNode.getPrevious();
-		return (recentNode == null) ? null :  recentNode.getElement();
-	}
-	
-	/**
-	 * Retrieves the element preceding the first instance of the 
-	 * provided element.
-	 * @param searchElement The provided element.
-	 * @return	E
-	 */
-	public E getPrevious(E searchElement)
-	{
-		recentNode = findNode(searchElement);
-		
-		if(recentNode == null)
-			return null;
-		
-		recentNode = recentNode.getPrevious();
-		
-		return (recentNode == null) ? null : recentNode.getElement();
-	}
-	
-	/**
-	 * Retrieves the element mostly recently retrieved.
-	 * @return	E or null
-	 */
-	public E getRecent()
-	{
-		return recentNode.getElement();
+		return lastNode.getPrevious().getElement();
 	}
 	
 	/**
@@ -265,23 +162,20 @@ public class LinkedList<E>
 	
 	/**
 	 * Removes the first element in the list and returns it.
-	 * @return E
+	 * @return E or null if empty
 	 */
 	public E removeFirst()
 	{
-		if(firstNode == null)
+		if(isEmpty())
 			return null;
 		
-		ListNode<E> oldFirst = firstNode;
-		E oldElement = oldFirst.getElement();
+		ListNode<E> deadNode = firstNode.getNext();
+		E oldElement = deadNode.element;
 		
-		firstNode = oldFirst.getNext();
-		oldFirst.setNext(null);
-		if(firstNode != null)
-			firstNode.setPrevious(null);
+		firstNode.setNext(deadNode.getNext());
+		deadNode.getNext().setPrevious(firstNode);
 		
 		size -= 1;
-		
 		return oldElement;
 	}
 	
@@ -291,19 +185,16 @@ public class LinkedList<E>
 	 */
 	public E removeLast()
 	{
-		if(lastNode == null)
+		if(isEmpty())
 			return null;
 		
-		ListNode<E> oldLast = lastNode;
-		E oldElement = oldLast.getElement();
+		ListNode<E> deadNode = lastNode.getPrevious();
+		E oldElement = deadNode.getElement();
 		
-		lastNode = oldLast.getPrevious();
-		oldLast.setPrevious(null);
-		if(lastNode != null)
-			lastNode.setNext(null);
+		lastNode.setPrevious(deadNode.getPrevious());
+		deadNode.getPrevious().setNext(lastNode);
 		
 		size -= 1;
-		
 		return oldElement;
 	}
 	
@@ -318,48 +209,16 @@ public class LinkedList<E>
 		
 		if(oldNode == null)
 			return null;
-		if(oldNode == lastNode)
-			return removeLast();
-		if(oldNode == firstNode)
-			return removeFirst();
 		
 		ListNode<E> prevNode = oldNode.getPrevious();
 		ListNode<E> nextNode = oldNode.getNext();
 		
-		if(prevNode != null)
-			prevNode.setNext(nextNode);
-		if(nextNode != null)
-			nextNode.setPrevious(prevNode);
-		
-		oldNode.setNext(null);
-		oldNode.setPrevious(null);
+		prevNode.setNext(nextNode);
+		nextNode.setPrevious(prevNode);
 		
 		size -= 1;
 		
 		return oldNode.getElement();
-	}
-	
-	public E remove(ListNode<E> dNode)
-	{
-		if(dNode == firstNode)
-			return removeFirst();
-		if(dNode == lastNode)
-			return removeLast();
-		
-		E oldElement = dNode.getElement();
-		
-		ListNode<E> pNode = dNode.getPrevious();
-		ListNode<E> nNode = dNode.getNext();
-		
-		dNode.setPrevious(null);
-		dNode.setNext(null);
-		
-		pNode.setNext(nNode);
-		nNode.setPrevious(pNode);
-		
-		size -= 1;
-		
-		return oldElement;
 	}
 	
 	/**
@@ -384,9 +243,9 @@ public class LinkedList<E>
 	 */
 	private ListNode<E> findNode(E searchElement)
 	{
-		ListNode<E> tempNode = firstNode;
+		ListNode<E> tempNode = firstNode.getNext();
 		
-		while(tempNode != null)
+		while(tempNode != lastNode)
 		{
 			if(tempNode.getElement() == searchElement)
 				return tempNode;
@@ -406,9 +265,9 @@ public class LinkedList<E>
 	 */
 	private ListNode<E> findNodeB(E searchElement)
 	{
-		ListNode<E> tempNode = firstNode;
+		ListNode<E> tempNode = firstNode.getNext();
 		
-		while(tempNode != null)
+		while(tempNode != lastNode)
 		{
 			if(tempNode.getElement().equals(searchElement))
 				return tempNode;
@@ -425,26 +284,13 @@ public class LinkedList<E>
 	 */
 	public LinkedList<E> clone()
 	{
-		if(size == 0)
-			return null;
-		
 		LinkedList<E> newList = new LinkedList<E>();
+		ListNode<E> node = firstNode.getNext();
 		
-		E recentElement = getFirst();
-		
-		newList.insertFirst(recentElement);
-		
-		if(size == 1)
-			return newList;
-		
-		while(true)
+		while(node != lastNode)
 		{
-			recentElement = getNext();
-			
-			if(recentElement == null)
-				break;
-			
-			newList.insertLast(recentElement);
+			newList.insertLast(node.element);
+			node = node.getNext();
 		}
 		
 		return newList;
@@ -460,19 +306,16 @@ public class LinkedList<E>
 		if(testList.getSize() != size)
 			return false;
 		
-		E thisList = getFirst();
-		E thatList = testList.getFirst();
+		ListNode<E> thisNode = firstNode.getNext();
+		ListNode<E> thatNode = testList.firstNode.getNext();
 		
-		while(true)
+		while(thisNode != lastNode)
 		{
-			if(!thisList.equals(thatList))
+			if(thisNode.element != null && !thisNode.getElement().equals(thatNode.getElement()))
 				return false;
 			
-			thisList = getNext();
-			thatList = testList.getNext();
-			
-			if(thisList == null)
-				break;
+			thisNode = thisNode.getNext();
+			thatNode = thatNode.getNext();
 		}
 		
 		return true;

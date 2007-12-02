@@ -12,7 +12,7 @@ import javax.swing.JPanel;
 import mordorData.Player;
 import mordorEnums.PlayerSkill;
 
-import structures.QuadNode;
+import structures.SkipIter;
 import structures.SkipList;
 
 public class HallOfRecords extends JPanel implements ActionListener
@@ -33,60 +33,48 @@ public class HallOfRecords extends JPanel implements ActionListener
 		layout.setVgap(10);
 		setLayout(layout);
 
-		Player tPlayer = getMostGold(players.firstNode());
+		Player tPlayer = getMostGold(players.getIterator());
 		add(new JLabel(tPlayer.getName() + " has the most gold with " + tPlayer.getTotalGold()));
-		tPlayer = getHighestExperience(players.firstNode());
+		tPlayer = getHighestExperience(players.getIterator());
 		add(new JLabel(tPlayer.getName() + " has the most experience with " + tPlayer.getTotalExperience()));
 		for(PlayerSkill ps : PlayerSkill.values())
 		{
-			tPlayer = getHighestPlayerSkill(ps, players.firstNode());
+			tPlayer = getHighestPlayerSkill(ps, players.getIterator());
 			add(new JLabel(tPlayer.getName() + " is the bast at " + ps.name() + "  with " + tPlayer.getPlayerSkill(ps)));
 		}
 		
 		add(jbDone);
 	}
 	
-	private Player getMostGold(QuadNode<Player> tPlayer)
+	private Player getMostGold(SkipIter<Player> tPlayer)
 	{
-		Player billGates = tPlayer.getElement();
+		Player billGates = tPlayer.element();
 		
-		while(tPlayer.getRight() != null)
-		{
-			if(tPlayer.getElement().getTotalGold() > billGates.getTotalGold())
-				billGates = tPlayer.getElement();
-			
-			tPlayer = tPlayer.getRight();
-		}
+		while(tPlayer.next())
+			if(tPlayer.element().getTotalGold() > billGates.getTotalGold())
+				billGates = tPlayer.element();
 		
 		return billGates;
 	}
 	
-	private Player getHighestPlayerSkill(PlayerSkill skill, QuadNode<Player> tPlayer)
+	private Player getHighestPlayerSkill(PlayerSkill skill, SkipIter<Player> tPlayer)
 	{
-		Player elCrafty = tPlayer.getElement();
+		Player elCrafty = tPlayer.element();
 		
-		while(tPlayer.getRight() != null)
-		{
-			if(tPlayer.getElement().getPlayerSkill(skill) > elCrafty.getPlayerSkill(skill))
-				elCrafty = tPlayer.getElement();
-			
-			tPlayer = tPlayer.getRight();
-		}
+		while(tPlayer.next())
+			if(tPlayer.element().getPlayerSkill(skill) > elCrafty.getPlayerSkill(skill))
+				elCrafty = tPlayer.element();
 		
 		return elCrafty;
 	}
 	
-	private Player getHighestExperience(QuadNode<Player> tPlayer)
+	private Player getHighestExperience(SkipIter<Player> tPlayer)
 	{
-		Player merlin = tPlayer.getElement();
+		Player merlin = tPlayer.element();
 		
-		while(tPlayer.getRight() != null)
-		{
-			if(tPlayer.getElement().getTotalExperience() > merlin.getTotalExperience())
-				merlin = tPlayer.getElement();
-			
-			tPlayer = tPlayer.getRight();
-		}
+		while(tPlayer.next())
+			if(tPlayer.element().getTotalExperience() > merlin.getTotalExperience())
+				merlin = tPlayer.element();
 		
 		return merlin;
 	}

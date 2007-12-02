@@ -19,7 +19,7 @@ import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
 import structures.LinkedList;
-import structures.ListNode;
+import structures.ListIter;
 
 import mordorData.DataBank;
 import mordorData.MonsterInstance;
@@ -270,19 +270,18 @@ public class DungeonFrame extends JInternalFrame implements KeyListener, Interna
 		
 		// TODO: Update Peace
 		int count = 0;
-		ListNode<LinkedList<MonsterInstance>> mNode = room.getMonsterStacks().getFirstNode();
+		ListIter<LinkedList<MonsterInstance>> mNode = room.getMonsterStacks().getIterator();
 		for(int i = 0; i < Util.MON_MAXSTACKSIZE && count < monsterViews.length; i++)
 		{
-			if(mNode != null)
+			if(mNode.next())
 			{
-				if(mNode.getElement().getSize() > 0)
+				if(mNode.element().getSize() > 0)
 				{
-					monsterViews[count].setIcon(new ImageIcon(dataBank.getImages().getMonsterImage(mNode.getElement().getFirst().getMonster().getMonsterImageID()).getScaledInstance(64, 64, 0)));
+					monsterViews[count].setIcon(new ImageIcon(dataBank.getImages().getMonsterImage(mNode.element().getFirst().getMonster().getMonsterImageID()).getScaledInstance(64, 64, 0)));
 					String monsText = (count == monsterAttacking) ? " * " : "   ";
-					monsText += count + ". " + mNode.getElement().getSize() + " " + mNode.getElement().getFirst().getMonster().getName();
+					monsText += count + ". " + mNode.element().getSize() + " " + mNode.element().getFirst().getMonster().getName();
 					monsterText[count].setText(monsText);
 				}
-				mNode = mNode.getNext();
 			}
 			else
 			{

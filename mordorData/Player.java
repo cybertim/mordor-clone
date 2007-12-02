@@ -19,6 +19,7 @@ import mordorHelpers.Coord;
 import mordorHelpers.Util;
 
 import structures.LinkedList;
+import structures.ListIter;
 import structures.ListNode;
 
 public class Player extends MObject<Race>
@@ -110,7 +111,7 @@ public class Player extends MObject<Race>
 		mName = Util.NOSTRING;
 		coords = dataBank.getMap().getExitCoords();
 		
-		mType = dataBank.getRaces().firstNode().getElement();
+		mType = dataBank.getRaces().first();
 		
 //		naturalStats = new byte[Stats.values().length];
 		acquiredStats = new byte[Stats.values().length];
@@ -539,15 +540,11 @@ public class Player extends MObject<Race>
 	{	
 		short topSkillVal = 0;
 		
-		ListNode<GuildRecord> tNode = guildRecords.getFirstNode();
+		ListIter<GuildRecord> tNode = guildRecords.getIterator();
 		
-		while(tNode != null)
-		{
-			if(tNode.getElement().getGuildSkill(skill) > topSkillVal)
-				topSkillVal = tNode.getElement().getGuildSkill(skill);
-			
-			tNode = tNode.getNext();
-		}
+		while(tNode.next())
+			if(tNode.element().getGuildSkill(skill) > topSkillVal)
+				topSkillVal = tNode.element().getGuildSkill(skill);
 		
 		return topSkillVal;
 	}
@@ -578,13 +575,10 @@ public class Player extends MObject<Race>
 	
 	public long getTotalExperience()
 	{
-		ListNode<GuildRecord> tGuild = guildRecords.getFirstNode();
+		ListIter<GuildRecord> tGuild = guildRecords.getIterator();
 		long xp = 0;
-		while(tGuild != null)
-		{
-			xp = Util.FITLONG(xp + tGuild.getElement().getExperience(), 0, Long.MAX_VALUE);
-			tGuild = tGuild.getNext();
-		}
+		while(tGuild.next())
+			xp = Util.FITLONG(xp + tGuild.element().getExperience(), 0, Long.MAX_VALUE);
 		
 		return xp;
 	}
@@ -623,6 +617,23 @@ public class Player extends MObject<Race>
 	}
 	
 	/**
+	 * Retrieves the index of a specific item instance.
+	 * @param item ItemInstance to find
+	 * @return byte  either the index or Util.Nothing if not found/valid.
+	 */
+	public byte getItemIndex(ItemInstance item)
+	{
+		if(item == null)
+			return Util.NOTHING;
+		
+		for(byte i = 0; i < items.length; i++)
+			if(items[i] == item)
+				return i;
+		
+		return Util.NOTHING;
+	}
+	
+	/**
 	 * Get the item equipped on a specific body part.
 	 * @param nBodyPart
 	 * @return
@@ -639,13 +650,10 @@ public class Player extends MObject<Race>
     
     public GuildRecord getGuildRecord(byte guildID)
     {
-        ListNode<GuildRecord> tNode = guildRecords.getFirstNode();
-        while(tNode != null)
-        {
-            if(tNode.getElement().getGuildID() == guildID)
-                return tNode.getElement();
-            tNode = tNode.getNext();
-        }
+        ListIter<GuildRecord> tNode = guildRecords.getIterator();
+        while(tNode.next())
+            if(tNode.element().getGuildID() == guildID)
+                return tNode.element();
         
         return null;
     }
@@ -1015,6 +1023,33 @@ public class Player extends MObject<Race>
 	}
 	
 	/**
+	 * If the player has enough gold, it will spend the amount
+	 * provided. Money will be removed from goldOnHand before gold in
+	 * the bank.
+	 * @param goldAdjustment amount of gold to remove.
+	 * @return true if player had enough gold
+	 */
+	public boolean spendGold(long goldAdjustment)
+	{
+		if(getTotalGold() < goldAdjustment)
+			return false;
+		
+		if(goldAdjustment >= goldOnHand)
+		{
+			goldAdjustment -= goldOnHand;
+			goldOnHand = 0;
+		}
+		else
+		{
+			goldOnHand -= goldAdjustment;
+			return true;
+		}
+		
+		bankAccount.changeGold(goldAdjustment);
+		return true;
+	}
+	
+	/**
 	 * Spends gold from players on hand gold, then (if not enough) from the bank account.
 	 * @param goldAdj Positive amount of gold to spend.
 	 * @return False if the player doesn't have enough, or if the adjustment is invalid.
@@ -1296,11 +1331,11 @@ public class Player extends MObject<Race>
 			return false;
 		
 		// Can't equip, if it is not equipment
-		if(!Util.isEquipment(tItem.getItemType()))
+		if(tItem.getItemType().getEquippingPart() == BodyParts.Objects)
 			return false;
 		
 		// Where does it go?
-		BodyParts bodyPart = Util.getEquippingBodyPart(tItem.getItemType());
+		BodyParts bodyPart = tItem.getItemType().getEquippingPart();
 		
 		// Can't equip if already have something equipped there.
 		if(equipment[bodyPart.value()] != Util.NOTHING)
@@ -1348,7 +1383,7 @@ public class Player extends MObject<Race>
 	 */
 	public boolean equipItem(byte itemIndex)
 	{
-		if(itemIndex < 0 || itemIndex > items.length || Util.getEquippingBodyPart(items[itemIndex].getItem().getItemType()) == BodyParts.None) 
+		if(itemIndex < 0 || itemIndex > items.length || items[itemIndex].getItem().getItemType().getEquippingPart() == BodyParts.Objects) 
             return false;
         
         // check each items stat requirement against the players natural stat.
@@ -1358,21 +1393,18 @@ public class Player extends MObject<Race>
                 return false;
         }
         
-        ListNode<GuildReference> tGuild = items[itemIndex].getItem().getGuilds().getFirstNode();
-        while(tGuild != null)
-        {
-            if(tGuild.getElement().getGuild() == activeGuild.getGuild())
+        ListIter<GuildReference> tGuild = items[itemIndex].getItem().getGuilds().getIterator();
+        while(tGuild.next())
+            if(tGuild.element().getGuild() == activeGuild.getGuild())
                 break; // Guild was found in allowed list.
-            
-            tGuild = tGuild.getNext();
-        }
-        if(tGuild == null) // Guild not allowed for item.
+        
+        if(tGuild.element().getGuild() != activeGuild.getGuild()) // Guild not allowed for item.
             return false;
         
-        if(tGuild.getElement().getLevel() > activeGuild.getLevel())
+        if(tGuild.element().getLevel() > activeGuild.getLevel())
             return false; // Level required by item is too high!
         
-        equipment[Util.getEquippingBodyPart(items[itemIndex].getItem().getItemType()).value()] = itemIndex;
+        equipment[items[itemIndex].getItem().getItemType().getEquippingPart().value()] = itemIndex;
         
         updateItemStates();
         updateItemResist();
@@ -1400,7 +1432,7 @@ public class Player extends MObject<Race>
 					canEquip = false;
 				
 				// Can't equip, if it is not equipment
-				if(!Util.isEquipment(tItem.getItem().getItemType()))
+				if(tItem.getItem().getItemType().getEquippingPart() == BodyParts.Objects)
 					canEquip = false;
 				
 				// Can't equip if the player is incapable of equipping.
@@ -1442,7 +1474,7 @@ public class Player extends MObject<Race>
     public void unequipItem(ItemInstance item)
     {
     	if(item != null && this.isItemEquipped(item))
-    		unequipItem(Util.getEquippingBodyPart(item.getItem().getItemType()).value());
+    		unequipItem(item.getItem().getItemType().getEquippingPart().value());
     }
 	
     /**
@@ -1482,9 +1514,9 @@ public class Player extends MObject<Race>
 		items[indexB] = tItem;
 		
 		if(aEquip)
-			equipment[Util.getEquippingBodyPart(items[indexB].getItem().getItemType()).value()] = indexB;
+			equipment[items[indexB].getItem().getItemType().getEquippingPart().value()] = indexB;
 		if(bEquip)
-			equipment[Util.getEquippingBodyPart(items[indexA].getItem().getItemType()).value()] = indexA;
+			equipment[items[indexA].getItem().getItemType().getEquippingPart().value()] = indexA;
 	}
 	
 	/**
@@ -1497,7 +1529,7 @@ public class Player extends MObject<Race>
 		if(items[itemIndex] == null)
 			return false;
 		
-		return (equipment[Util.getEquippingBodyPart(items[itemIndex].getItem().getItemType()).value()] == itemIndex);
+		return (equipment[items[itemIndex].getItem().getItemType().getEquippingPart().value()] == itemIndex);
 	}
 	
 	/**
@@ -1511,7 +1543,7 @@ public class Player extends MObject<Race>
 			return false;
 		
 		for(byte i = 0; i < items.length; i++)
-			if(items[i] == oldItem && equipment[Util.getEquippingBodyPart(oldItem.getItem().getItemType()).value()] == i)
+			if(items[i] == oldItem && equipment[oldItem.getItem().getItemType().getEquippingPart().value()] == i)
 				return true;
 		
 		return false;
@@ -1619,15 +1651,11 @@ public class Player extends MObject<Race>
      */
     public boolean addGuildRecord(GuildRecord newGuild)
     {
-        ListNode<GuildRecord> tNode = guildRecords.getFirstNode();
+        ListIter<GuildRecord> tNode = guildRecords.getIterator();
         
-        while(tNode != null)
-        {
-            if(tNode.getElement().getGuild() == newGuild.getGuild())
+        while(tNode.next())
+            if(tNode.element().getGuild() == newGuild.getGuild())
                 return false;
-            
-            tNode = tNode.getNext();
-        }
         
         guildRecords.insert(newGuild);
         return true;
@@ -1669,10 +1697,13 @@ public class Player extends MObject<Race>
         {
             if(items[i] == oldItem)
             {
+            	// Eliminate the item from inventory.
                 items[i] = null;
                 
-                BodyParts bodyPart = Util.getEquippingBodyPart(oldItem.getItem().getItemType());
-                if(bodyPart != BodyParts.None && equipment[bodyPart.value()] == i)
+                // If the item is equippable (that is, not an 'objects' body part type)
+                // Then unequip it.
+                BodyParts bodyPart = oldItem.getItem().getItemType().getEquippingPart();
+                if(bodyPart != BodyParts.Objects && equipment[bodyPart.value()] == i)
                     equipment[bodyPart.value()] = Util.NOTHING;
                 return true;                
             }
@@ -1697,12 +1728,10 @@ public class Player extends MObject<Race>
     			removeItem(items[i]);
     	
     	// Check if it is in the player's bank account
-    	ListNode<ItemInstance> tItem = bankAccount.getItems().getFirstNode();
-    	while(tItem != null)
-    	{
-    		if(tItem.getElement().getItemID() == crest.getID())
-    			bankAccount.removeItem(tItem.getElement());
-    	}
+    	ListIter<ItemInstance> tItem = bankAccount.getItems().getIterator();
+    	while(tItem.next())
+    		if(tItem.element().getItemID() == crest.getID())
+    			bankAccount.removeItem(tItem.element());
     }
     
     /**
@@ -2070,12 +2099,9 @@ public class Player extends MObject<Race>
             bankAccount.writeBankAccount(dos);
             
             dos.writeInt(guildRecords.getSize());
-            ListNode<GuildRecord> tGuild = guildRecords.getFirstNode();
-            while(tGuild != null)
-            {
-                tGuild.getElement().writeGuildRecord(dos);
-                tGuild = tGuild.getNext();
-            }
+            ListIter<GuildRecord> tGuild = guildRecords.getIterator();
+            while(tGuild.next())
+                tGuild.element().writeGuildRecord(dos);
 
             if(activeGuild == null)
             	dos.writeByte(Util.NOTHING);

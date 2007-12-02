@@ -3,7 +3,7 @@ package mordorData;
 import java.util.Random;
 
 import mordorHelpers.Util;
-import structures.QuadNode;
+import structures.SkipIter;
 import structures.SkipList;
 
 public class ItemCloset
@@ -37,15 +37,12 @@ public class ItemCloset
 	 */
 	private byte findMaxLevel()
 	{
-		QuadNode<Item> iNode = items.firstNode();
+		SkipIter<Item> iNode = items.getIterator();
 		byte maxLevel = Util.NOTHING;
 		
-		while(iNode.getRight() != null)
-		{
-			if(iNode.getElement().getMinimumLevel() > maxLevel)
-				maxLevel = iNode.getElement().getMinimumLevel();
-			iNode = iNode.getRight();
-		}
+		while(iNode.next())
+			if(iNode.element().getMinimumLevel() > maxLevel)
+				maxLevel = iNode.element().getMinimumLevel();
 		
 		return maxLevel;
 	}
@@ -57,13 +54,10 @@ public class ItemCloset
 	private SkipList<Item> getItemsByLevel()
 	{
 		SkipList<Item> levelList = new SkipList<Item>();
-		QuadNode<Item> iNode = items.firstNode();
+		SkipIter<Item> iNode = items.getIterator();
 		
-		while(iNode.getRight() != null)
-		{
-			levelList.insert(iNode.getElement(), (int)iNode.getElement().getMinimumLevel());
-			iNode = iNode.getRight();
-		}
+		while(iNode.next())
+			levelList.insert(iNode.element(), (int)iNode.element().getMinimumLevel());
 		
 		return levelList;
 	}
@@ -86,27 +80,25 @@ public class ItemCloset
 		 */
 		levelKeys = new int[maxLevel + 2];
 		
-		QuadNode<Item> iNode = getItemsByLevel().firstNode();
+		SkipIter<Item> iNode = getItemsByLevel().getIterator();
 		int currentKey = 0;
 		int currentLevel = 0;
 		
-		while(iNode.getRight() != null)
+		while(iNode.next())
 		{
 			// Using the sum of keys up to here, add this element w/ that key.
-			itemsByCOA.insert(iNode.getElement(), currentKey);
+			itemsByCOA.insert(iNode.element(), currentKey);
 			
 			// If we have moved to a new level, also set the start key for
 			// the new level to the same key
-			if(currentLevel < iNode.getElement().getMinimumLevel())
+			if(currentLevel < iNode.element().getMinimumLevel())
 			{
-				currentLevel = iNode.getElement().getMinimumLevel();
+				currentLevel = iNode.element().getMinimumLevel();
 				levelKeys[currentLevel] = currentKey;
 			}
 			
 			// Finally, add this monsters COA to the current key.
-			currentKey += iNode.getElement().getChance();
-			
-			iNode = iNode.getRight();
+			currentKey += iNode.element().getChance();
 		}
 		
 		// Lastly, set the key for the level + 1(that is, the max key
@@ -151,9 +143,9 @@ public class ItemCloset
 	{
 		Random random = new Random(System.currentTimeMillis());
 		
-		QuadNode<Item> iNode = items.firstNode();
-		for(int i = random.nextInt(items.getSize()); i > 0; i--, iNode = iNode.getRight());
+		SkipIter<Item> iNode = items.getIterator();
+		for(int i = random.nextInt(items.getSize()); i > 0; i--, iNode.next());
 		
-		return iNode.getElement();
+		return iNode.element();
 	}
 }

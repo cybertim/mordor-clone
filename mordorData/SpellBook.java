@@ -3,8 +3,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
 import structures.LinkedList;
-import structures.ListNode;
-import structures.QuadNode;
+import structures.ListIter;
+import structures.SkipIter;
 import structures.SkipList;
 
 import mordorEnums.SpellClass;
@@ -30,17 +30,14 @@ public class SpellBook
 	public LinkedList<SpellReference> getSpellClass(SpellClass classToFind)
 	{
 		LinkedList<SpellReference> classSpells = new LinkedList<SpellReference>();
-		QuadNode<SpellReference> tSpell = spells.firstNode();
+		SkipIter<SpellReference> tSpell = spells.getIterator();
 		
 		if(tSpell == null)
 			return null;
 		
-		while(tSpell.getRight() != null)
-		{
-			if(tSpell.getElement().getSpellClass() == classToFind)
-				classSpells.insert(tSpell.getElement());
-			tSpell = tSpell.getRight();
-		}
+		while(tSpell.next())
+			if(tSpell.element().getSpellClass() == classToFind)
+				classSpells.insert(tSpell.element());
 		
 		return classSpells;
 	}
@@ -57,13 +54,12 @@ public class SpellBook
 			return null;
 		
 		String[] spellNames = new String[classSpells.getSize()];
-		ListNode<SpellReference> sNode = classSpells.getFirstNode();
+		ListIter<SpellReference> sNode = classSpells.getIterator();
 		int count = 0;
-		while(sNode != null)
+		while(sNode.next())
 		{
-			spellNames[count] = sNode.getElement().getSpell().getName();
+			spellNames[count] = sNode.element().getSpell().getName();
 			count++;
-			sNode = sNode.getNext();
 		}
 		
 		return spellNames;
@@ -76,13 +72,12 @@ public class SpellBook
 			return null;
 		
 		short[] spellIDs = new short[classSpells.getSize()];
-		ListNode<SpellReference> sNode = classSpells.getFirstNode();
+		ListIter<SpellReference> sNode = classSpells.getIterator();
 		int count = 0;
-		while(sNode != null)
+		while(sNode.next())
 		{
-			spellIDs[count] = sNode.getElement().getSpellID();
+			spellIDs[count] = sNode.element().getSpellID();
 			count++;
-			sNode = sNode.getNext();
 		}
 		
 		return spellIDs;
@@ -152,14 +147,11 @@ public class SpellBook
 	
 	public SpellReference getSpell(String spellName)
 	{
-		QuadNode<SpellReference> tNode = spells.firstNode();
+		SkipIter<SpellReference> tNode = spells.getIterator();
 		
-		while(tNode.getRight() != null)
-		{
-			if(tNode.getElement().getSpell().getName().equalsIgnoreCase(spellName))
-				return tNode.getElement();
-			tNode = tNode.getRight();
-		}
+		while(tNode.next())
+			if(tNode.element().getSpell().getName().equalsIgnoreCase(spellName))
+				return tNode.element();
 		
 		return null;
 	}
@@ -174,16 +166,15 @@ public class SpellBook
 		if(spells.getSize() > MAXSPELLS)
 			return null;
 
-		QuadNode<SpellReference> tSpell = spells.firstNode();
+		SkipIter<SpellReference> tSpell = spells.getIterator();
 		short newSpellID = 0;
 			
-		while(tSpell.getRight() != null)
+		while(tSpell.next())
 		{
-			if(tSpell.getKey() > newSpellID)
+			if(tSpell.key() > newSpellID)
 				break;
 			
 			newSpellID++;
-			tSpell = tSpell.getRight();
 		}
 		
 		SpellReference newSpell = new SpellReference(new Spell(Util.NOSTRING, newSpellID), (short)0, newSpellClass);
@@ -210,18 +201,11 @@ public class SpellBook
 	 */
 	public void clearEmptySpells()
 	{
-		QuadNode<SpellReference> tNode = spells.firstNode();
-		QuadNode<SpellReference> dNode;
-		while(tNode.getRight() != null)
+		SkipIter<SpellReference> tNode = spells.getIterator();
+		while(tNode.next())
 		{
-			if(tNode.getElement().getSpell().getName().equalsIgnoreCase(Util.NOSTRING))
-			{
-				dNode = tNode;
-				tNode = tNode.getRight();
-				spells.remove(dNode.getKey());
-			}
-			else
-				tNode = tNode.getRight();
+			if(tNode.element().getSpell().getName().equalsIgnoreCase(Util.NOSTRING))
+				spells.remove(tNode.key());
 		}
 	}
 	
@@ -240,13 +224,10 @@ public class SpellBook
             if(spells.getSize() < 1)
                 return true;
             
-            QuadNode<SpellReference> tNode = spells.firstNode();
+            SkipIter<SpellReference> tNode = spells.getIterator();
             
-            while(tNode.getRight() != null)
-            {
-                tNode.getElement().writeSpellRef(dos);
-                tNode = tNode.getRight();
-            }
+            while(tNode.next())
+                tNode.element().writeSpellRef(dos);
             
         }
         catch(Exception e)

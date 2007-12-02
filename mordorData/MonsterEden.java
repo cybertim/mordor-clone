@@ -4,8 +4,10 @@ import java.util.Random;
 import mordorEnums.MonsterClass;
 import mordorHelpers.Util;
 import structures.LinkedList;
+import structures.ListIter;
 import structures.ListNode;
 import structures.QuadNode;
+import structures.SkipIter;
 import structures.SkipList;
 
 /**
@@ -14,45 +16,17 @@ import structures.SkipList;
  *
  */
 public class MonsterEden
-{	
-//	public static final byte GROUP_MAXSIZE = 64;
-	//public static final byte GROUP_MINSIZE = 1;
-	//public static final byte GROUP_MAXNUM = 4;
-//	public static final byte GROUP_MINNUM = 1;
-	
-	/* The maximum meaningful COA value */
-//	public static final byte MAXCOAVALUE = 66;
+{
 	
 	private SkipList<Monster> monsters;
 	private SkipList<Monster> monstersByCOA; // List of monsters, keyed by sum of COA of monsters before them. 
 	private int levelKeys[];
-	
-//	private SkipList<Monster> lairedMonsters; // quick link to laired monsters
-	
-	/*
-	 * Based on the level of the current player, this hold available available
-	 * monsters up to and including this level and the level.
-	 * Max key is the key of the last element + it's own chance of appearance (COA).
-	 * Note: It's key does NOT include its own COA.  
-	 */
-//	private int availableLevel, maxAvailKey, maxStudKey, maxAquaKey;
-//	private SkipList<Monster> availableMonsters;
-//	private SkipList<Monster> studMonsters;
-//	private SkipList<Monster> aquaticMonsters;
 	
 	MonsterEden()
 	{
 		monsters = new SkipList<Monster>();
 		monstersByCOA = new SkipList<Monster>();
 		levelKeys = new int[1];
-		
-	/*	lairedMonsters = new SkipList<Monster>();
-		studMonsters = new SkipList<Monster>();
-		aquaticMonsters= new SkipList<Monster>();
-		
-		availableLevel = Byte.MIN_VALUE;
-		maxAvailKey = 0;
-		maxStudKey = 0;*/
 	}
 	
 	/**
@@ -61,15 +35,12 @@ public class MonsterEden
 	 */
 	private byte findMaxLevel()
 	{
-		QuadNode<Monster> mNode = monsters.firstNode();
+		SkipIter<Monster> mNode = monsters.getIterator();
 		byte maxLevel = Util.NOTHING;
 		
-		while(mNode.getRight() != null)
-		{
-			if(mNode.getElement().getMinMapLevel() > maxLevel)
-				maxLevel = mNode.getElement().getMinMapLevel();
-			mNode = mNode.getRight();
-		}
+		while(mNode.next())
+			if(mNode.element().getMinMapLevel() > maxLevel)
+				maxLevel = mNode.element().getMinMapLevel();
 		
 		return maxLevel;
 	}
@@ -81,13 +52,10 @@ public class MonsterEden
 	private SkipList<Monster> getMonstersByLevel()
 	{
 		SkipList<Monster> levelList = new SkipList<Monster>();
-		QuadNode<Monster> mNode = monsters.firstNode();
+		SkipIter<Monster> mNode = monsters.getIterator();
 		
-		while(mNode.getRight() != null)
-		{
-			levelList.insert(mNode.getElement(), (int)mNode.getElement().getMinMapLevel());
-			mNode = mNode.getRight();
-		}
+		while(mNode.next())
+			levelList.insert(mNode.element(), (int)mNode.element().getMinMapLevel());
 		
 		return levelList;
 	}
@@ -110,27 +78,25 @@ public class MonsterEden
 		 */
 		levelKeys = new int[maxLevel + 2];
 		
-		QuadNode<Monster> mNode = this.getMonstersByLevel().firstNode();
+		SkipIter<Monster> mNode = this.getMonstersByLevel().getIterator();
 		int currentKey = 0;
 		int currentLevel = 0;
 		
-		while(mNode.getRight() != null)
+		while(mNode.next())
 		{
 			// Using the sum of keys up to here, add this element w/ that key.
-			monstersByCOA.insert(mNode.getElement(), currentKey);
+			monstersByCOA.insert(mNode.element(), currentKey);
 			
 			// If we have moved to a new level, also set the start key for
 			// the new level to the same key
-			if(currentLevel < mNode.getElement().getMinMapLevel())
+			if(currentLevel < mNode.element().getMinMapLevel())
 			{
-				currentLevel = mNode.getElement().getMinMapLevel();
+				currentLevel = mNode.element().getMinMapLevel();
 				levelKeys[currentLevel] = currentKey;
 			}
 			
 			// Finally, add this monsters COA to the current key.
-			currentKey += mNode.getElement().getChanceOfAppearance();
-			
-			mNode = mNode.getRight();
+			currentKey += mNode.element().getChanceOfAppearance();
 		}
 		
 		// Lastly, set the key for the level + 1(that is, the max key
@@ -282,41 +248,11 @@ public class MonsterEden
 	{
 		Random random = new Random(System.currentTimeMillis());
 		
-		QuadNode<Monster> mNode = monsters.firstNode();
-		for(int i = random.nextInt(monsters.getSize()); i > 0; i--, mNode = mNode.getRight());
+		SkipIter<Monster> mNode = monsters.getIterator();
+		for(int i = random.nextInt(monsters.getSize()); i > 0; i--, mNode.next());
 		
-		return mNode.getElement();
+		return mNode.element();
 	}
-	
-	/**
-	 * Retrieves a random monsters of a specific class from those monsters
-	 * available.
-	 * @param mc	MonsterClass
-	 * @return	Monster or null if one couldn't be found.
-	 */
-/*	public Monster getRandomMonster(MonsterClass mc, boolean getStud, boolean getAquatic)
-	{
-		Random random = new Random(System.currentTimeMillis());
-		
-		int count = 0;
-		Monster monster = null;
-		
-		while((monster != null && monster.getMonsterClass() == mc) && count < (MonsterClass.values().length << 1))
-		{
-			if(getStud)
-				monster = studMonsters.findEarly(random.nextInt(maxAvailKey));
-			else if(getAquatic)
-				monster = aquaticMonsters.findEarly(random.nextInt(maxAvailKey));
-			else
-				monster = availableMonsters.findEarly(random.nextInt(maxAvailKey));
-			count++;
-		}
-		
-		if(monster.getMonsterClass() != mc)
-			return null;
-		else
-			return monster;
-	}*/
 	
 	/**
 	 * Retrieve the skip list of all the monsters.
@@ -334,32 +270,26 @@ public class MonsterEden
 	
 	public Monster getMonster(String monsterName)
 	{
-		QuadNode<Monster> tNode = monsters.firstNode();
+		SkipIter<Monster> tNode = monsters.getIterator();
 		
-		while(tNode.getRight() != null)
-		{
-			if(tNode.getElement().getName().equalsIgnoreCase(monsterName))
-				return tNode.getElement();
+		while(tNode.next())
+			if(tNode.element().getName().equalsIgnoreCase(monsterName))
+				return tNode.element();
 			
-			tNode = tNode.getRight();
-		}
 		return null;
 	}
 	
 	public SkipList<Monster> getMonstersByClass(MonsterClass monsterClass)
 	{
-		QuadNode<Monster> tNode = monsters.firstNode();
+		SkipIter<Monster> tNode = monsters.getIterator();
 		SkipList<Monster> monsterList = new SkipList<Monster>();
 		
-		if(tNode == null)
+		if(tNode.last())
 			return null;
 		
-		while(tNode.getRight() != null)
-		{
-			if(tNode.getElement().getMonsterClass() == monsterClass)
-				monsterList.insert(tNode.getElement(), tNode.getKey());
-			tNode = tNode.getRight();
-		}
+		while(tNode.next())
+			if(tNode.element().getMonsterClass() == monsterClass)
+				monsterList.insert(tNode.element(), tNode.key());
 		
 		return monsterList;
 	}
@@ -370,15 +300,14 @@ public class MonsterEden
 		if(monsterList == null || monsterList.getSize() == 0)
 			return null;
 		
-		QuadNode<Monster> tNode = monsterList.firstNode();
+		SkipIter<Monster> tNode = monsterList.getIterator();
 		String[] monsterNames = new String[monsterList.getSize()];
 		int count = 0;
 		
-		while(tNode.getRight() != null)
+		while(tNode.next())
 		{
-			monsterNames[count] = tNode.getElement().getName();
+			monsterNames[count] = tNode.element().getName();
 			count++;
-			tNode = tNode.getRight();
 		}
 		
 		return monsterNames;
@@ -401,9 +330,9 @@ public class MonsterEden
 		Random rand = new Random(System.nanoTime());
 		int count = rand.nextInt(monstersAvail.getSize());
 		
-		ListNode<Monster> tMon = monstersAvail.getFirstNode();
+		ListIter<Monster> tMon = monstersAvail.getIterator();
 		
-		for(int i = 0; i < count; i++, tMon = tMon.getNext());
+		for(int i = 0; i < count; i++, tMon.next());
 		
 		// Now we have the monsters, figure out how many we want.
 		// Get some amount between the 1/2 the maximum size and the max.
@@ -413,7 +342,7 @@ public class MonsterEden
 		// Now create a bunch of instances.
 		LinkedList<MonsterInstance> monStack = new LinkedList<MonsterInstance>();
 		for(int i = 0; i < count; i++)
-			monStack.insert(tMon.getElement().createInstance());
+			monStack.insert(tMon.element().createInstance());
 		
 		return monStack;
 	}
@@ -435,21 +364,19 @@ public class MonsterEden
 		
 		LinkedList<Monster> monList = new LinkedList<Monster>();
 		
-		QuadNode<Monster> tMon = monsters.firstNode();
+		SkipIter<Monster> tMon = monsters.getIterator();
 		
-		while(tMon.getRight() != null)
+		while(tMon.next())
 		{
-			if(tMon.getElement().getMinMapLevel() <= maximumLevel)
+			if(tMon.element().getMinMapLevel() <= maximumLevel)
 			{
 				if(weighted)
 					// TODO, this should be using a random number between high & low bound
-					for(byte i = 0; i < tMon.getElement().getGroupSize(); i++)
-						monList.insert(tMon.getElement());
+					for(byte i = 0; i < tMon.element().getGroupSize(); i++)
+						monList.insert(tMon.element());
 				else
-					monList.insert(tMon.getElement());
+					monList.insert(tMon.element());
 			}
-					
-			tMon = tMon.getRight();
 		}
 		return monList;
 	}
@@ -529,14 +456,11 @@ public class MonsterEden
 	 */
 	public void removeBlankMonsters()
 	{
-		QuadNode<Monster> mNode = monsters.firstNode();
-		while(mNode.getRight() != null)
+		SkipIter<Monster> mNode = monsters.getIterator();
+		while(mNode.next())
 		{
-			Monster rMonster = mNode.getElement();
-			mNode = mNode.getRight();
-			
-			if(rMonster.getName().contains(Util.NOSTRING))
-				monsters.remove((int)rMonster.getID());
+			if(mNode.element().getName().contains(Util.NOSTRING))
+				monsters.remove(mNode.key());
 		}
 	}
 	
@@ -545,22 +469,24 @@ public class MonsterEden
 		return (!monName.contains(Util.NOSTRING) && (getMonster(monName) == null));
 	}
 	
+	/**
+	 * Retrieve the first available key.
+	 * @return Lowest available key or -1 if no valid keys.
+	 */
 	private short getFirstID()
 	{
 		if(monsters.getSize() == 0)
 			return 0;
 		
-		QuadNode<Monster> tNode = monsters.firstNode();
+		SkipIter<Monster> tNode = monsters.getIterator();
 		
-		if(tNode.getKey() > 0)
-			return 0;
-		
-		while(tNode.getRight() != null)
+		short lastKey = 0;
+		while(tNode.next())
 		{
-			if(tNode.getKey() < Short.MAX_VALUE && tNode.getKey() < (tNode.getRight().getKey() - 1))
-				return (short)(tNode.getKey() + 1);
+			if(tNode.key() < Short.MAX_VALUE && tNode.key() > lastKey)
+				return lastKey;
 			
-			tNode = tNode.getRight();
+			lastKey = (short)(tNode.key() + 1);
 		}
 		
 		return -1;

@@ -1,6 +1,5 @@
 package mordorEditor;
 
-import mordorData.BankAccount;
 import mordorData.Item;
 import mordorData.ItemInstance;
 import mordorData.DataBank;
@@ -9,6 +8,7 @@ import mordorData.ItemSpecials;
 import mordorEnums.BodyParts;
 import mordorHelpers.Util;
 import structures.LinkedList;
+import structures.ListIter;
 import structures.ListNode;
 
 import java.awt.Dimension;
@@ -95,15 +95,14 @@ public class PlayerItemList extends JPanel implements Scrollable, ActionListener
 	 */
 	public boolean setItemList(LinkedList<ItemInstance> nItemList, Player nPlayer)
 	{
-		ListNode<ItemInstance> tItem = nItemList.getFirstNode();
+		ListIter<ItemInstance> tItem = nItemList.getIterator();
 		
 		items = new ItemInstance[maxItems];
 		byte count = 0;
-		while(tItem != null)
+		while(tItem.next())
 		{
-			items[count] = tItem.getElement();
+			items[count] = tItem.element();
 			count++;
-			tItem = tItem.getNext();
 		}
 		player = nPlayer;
 		updatePanel();
@@ -173,8 +172,8 @@ public class PlayerItemList extends JPanel implements Scrollable, ActionListener
 		
 		if(showEquip)
 		{
-			BodyParts bodyPart = Util.getEquippingBodyPart(items[itemNumber].getItem().getItemType());
-			if(bodyPart != BodyParts.None)
+			BodyParts bodyPart = items[itemNumber].getItem().getItemType().getEquippingPart();
+			if(bodyPart != BodyParts.Objects)
 			{
 				if(player.canPlayerEquip(items[itemNumber].getItem()))
 				{
@@ -371,7 +370,7 @@ public class PlayerItemList extends JPanel implements Scrollable, ActionListener
 	private boolean isItemEquippable(byte itemNumber)
 	{
 		Item tItem = getItem(itemNumber);
-		BodyParts bodyPart = Util.getEquippingBodyPart(tItem.getItemType());
+		BodyParts bodyPart = tItem.getItemType().getEquippingPart();
 		
 		if(!player.canPlayerEquip(tItem))
 			return false;
@@ -384,7 +383,7 @@ public class PlayerItemList extends JPanel implements Scrollable, ActionListener
 				Item oItem = getItem(i);
 				
 				// If it is the same bodypart, and selected as equippped, then we have a problem.
-				if(oItem != null && bodyPart == Util.getEquippingBodyPart(getItem(i).getItemType()) && jbItemEquipped[i].isSelected())
+				if(oItem != null && bodyPart == getItem(i).getItemType().getEquippingPart() && jbItemEquipped[i].isSelected())
 					return false;
 			}
 		}

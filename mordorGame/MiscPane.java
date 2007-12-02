@@ -2,11 +2,18 @@ package mordorGame;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import structures.ListIter;
 import structures.ListNode;
 
 import mordorData.DataBank;
@@ -15,9 +22,11 @@ import mordorData.Item;
 import mordorData.ItemInstance;
 import mordorData.ItemSpecials;
 import mordorData.MonsterInstance;
+import mordorEnums.BodyParts;
 import mordorEnums.MonsterAbility;
 import mordorEnums.Resistance;
 import mordorEnums.Stats;
+import mordorGame.ItemLabel.DTListener;
 import mordorHelpers.Util;
 
 public class MiscPane extends JPanel
@@ -31,10 +40,12 @@ public class MiscPane extends JPanel
 	private static final String[] MONHEAD_STRINGS = {"STORE", "COMPANION"};
 	
 	private byte lastPane; // What type of plane was shown last.
+	private DataBank databank;
 	
-	MiscPane()
+	MiscPane(DataBank theDB)
 	{
 		lastPane = LASTNOTHING;
+		databank = theDB;
 	}
 	
 	public void showNothing()
@@ -43,7 +54,7 @@ public class MiscPane extends JPanel
 		this.removeAll();
 	}
 	
-	public void showItem(ItemInstance item, DataBank dataBank)
+	public void showItem(ItemInstance item)
 	{
 		if(item == null)
 		{
@@ -53,12 +64,14 @@ public class MiscPane extends JPanel
 		lastPane = LASTITEM;
 		this.removeAll();
 		
+		// TODO This should consider ID Levels
+		
 		setLayout(new BorderLayout());
 		JPanel nPane = new JPanel();
 		JPanel sPane = new JPanel();
 		sPane.setLayout(new BorderLayout());
 		// TODO: Put these first 3 lines as Table
-		String nText = "<HTML><FONT SIZE=2><B>Item  " + item.getItem().getName();
+		String nText = "<HTML><FONT SIZE=2><B>Item  " + item.toString();
 		nText += "<BR>Att/Def  " + item.getItem().getAttackModifier() + "/" + item.getItem().getDefenseModifier() + " [" + item.getItem().getDamageModifier() + "]";
 		nText += "<BR>Class: " + item.getItem().getItemType().toString();
 		nText += "<BR><BR><TABLE CELLPADDING=0 CELLSPACING=1><TR><TD> </TD>";
@@ -74,7 +87,7 @@ public class MiscPane extends JPanel
 		
 		String swText = "<HTML><FONT SIZE=2>";
 		int count = 0;
-		if(item.getItem().getItemType().isWeapon())
+		if(item.getItem().getItemType().getEquippingPart() == BodyParts.Weapon)
 		{
 			swText += (item.getItem().isTwoHanded()) ? "Two-handed weapon, <BR>" : "One-handed weapon, <BR>";
 			swText += item.getItem().getSwings() + " swing";
@@ -107,7 +120,7 @@ public class MiscPane extends JPanel
 				count++;
 				break;
 			case ItemSpecials.ITEMSPECIAL_SPELL:
-				swText += "<BR>Cast " + t.getSpell(dataBank).getSpell().getName() + "(" + item.getChargesLeft() + ")";
+				swText += "<BR>Cast " + t.getSpell(databank).getSpell().getName() + "(" + item.getChargesLeft() + ")";
 				count++;
 				break;
 			case ItemSpecials.ITEMSPECIAL_OTHER:
@@ -121,14 +134,14 @@ public class MiscPane extends JPanel
 		swText += "<BR><BR><B>ID Lev:</B><BR>" + item.getIDLevel().toString() + "</FONT></HTML>";
 		
 		String seText = "<HTML><FONT SIZE=2><B>Allowed Guilds</B></FONT><BR><TABLE CELLSPACING=0 CELLPADDING=0>";
-		ListNode<GuildReference> gNode = item.getItem().getGuilds().getFirstNode();
+		//ListNode<GuildReference> gNode = item.getItem().getGuilds().getFirstNode();
+		ListIter<GuildReference> gNode = item.getItem().getGuilds().getIterator();
 		count = 0;
-		while(gNode != null && count < 8)
+		while(gNode.next() && count < 8)
 		{
-			seText += "<TR><TD>" + gNode.getElement().getGuild().getName() + " </TD>";
-			seText += "<TD>" + gNode.getElement().getLevel() + "</TD></TR>";
+			seText += "<TR><TD>" + gNode.element().getGuild().getName() + " </TD>";
+			seText += "<TD>" + gNode.element().getLevel() + "</TD></TR>";
 			count++;
-			gNode = gNode.getNext();
 		}
 		
 		seText += "</TABLE>";

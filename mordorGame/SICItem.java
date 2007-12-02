@@ -6,17 +6,13 @@
 package mordorGame;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
 
 import mordorData.DataBank;
 import mordorData.ItemInstance;
@@ -27,8 +23,6 @@ public class SICItem extends JPanel implements ActionListener
 	private Player player;
 	private InformationPanel infoPane;
 	private DataBank dataBank;
-//	private JTable itemTable;
-//	private SICItemTable itemTableData;
 	private SICItemList items;
 	private JButton jbEquip, jbDrop, jbInfo, jbUse;
 	
@@ -62,21 +56,6 @@ public class SICItem extends JPanel implements ActionListener
 		JPanel lPane = new JPanel();
 		items = new SICItemList(player);
 		add(new JScrollPane(items));
-
-/*		itemTableData = new SICItemTable(player);
-		itemTable = new JTable(itemTableData);
-		
-		itemTable.getColumnModel().getColumn(0).setPreferredWidth(10);
-		itemTable.getColumnModel().getColumn(1).setPreferredWidth(10);
-		
-		itemTable.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-		itemTable.setRowSelectionAllowed(true);
-		itemTable.setColumnSelectionAllowed(false);
-		itemTable.setPreferredScrollableViewportSize(new Dimension(160, 180));
-		itemTable.setTableHeader(null);
-		
-		lPane.add(new JScrollPane(itemTable));
-*/		
 		
 		add(lPane, BorderLayout.WEST);
 		add(bPane, BorderLayout.EAST);
@@ -151,7 +130,7 @@ public class SICItem extends JPanel implements ActionListener
 		{
 			ItemInstance tItem = getSelectedItem();
 			if(tItem != null)
-				infoPane.showItem(dataBank, tItem);
+				infoPane.showItem(tItem);
 			// TODO : Fire a message instead.
 		}
 	}

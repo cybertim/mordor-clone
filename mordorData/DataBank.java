@@ -15,8 +15,10 @@ import mordorMessenger.MordorMessenger;
 
 
 import structures.LinkedList;
+import structures.ListIter;
 import structures.ListNode;
 import structures.QuadNode;
+import structures.SkipIter;
 import structures.SkipList;
 
 /**
@@ -550,99 +552,70 @@ public class DataBank
         
         LinkedList<GuildRecord> deadGuilds = new LinkedList<GuildRecord>();
         
-        ListNode<GuildRecord> tGuildRecord = guildRecordLoadList.getFirstNode();
-        while(tGuildRecord != null)
-        {
-            if(!tGuildRecord.getElement().setGuild(getGuild(tGuildRecord.getElement().getGuildID())))
-                deadGuilds.insert(tGuildRecord.getElement()); // guild doesn't exist. add to dead guilds to be removed.
-            tGuildRecord = tGuildRecord.getNext();
-        }
+        ListIter<GuildRecord> tGuildRecord = guildRecordLoadList.getIterator();
+        while(tGuildRecord.next())
+            if(!tGuildRecord.element().setGuild(getGuild(tGuildRecord.element().getGuildID())))
+                deadGuilds.insert(tGuildRecord.element()); // guild doesn't exist. add to dead guilds to be removed.
+        
         removeDeadGuildRecords(deadGuilds);
         
         
-        QuadNode<Guild> tGuild = guildTypes.firstNode();
-        if(tGuild != null)
-        {
-	        while(tGuild.getRight() != null)
-	        {
-	        	tGuild.getElement().setCrest(this.getItem(tGuild.getElement().getCrestID()));
-	        	tGuild = tGuild.getRight();
-	        }
-        }
+        SkipIter<Guild> tGuild = guildTypes.getIterator();
+	    while(tGuild.next())
+	       	tGuild.element().setCrest(this.getItem(tGuild.element().getCrestID()));
         
         // Parses every player and ensures that and quest items/monsters
         // still exist.
-        QuadNode<Player> tPlayer = players.firstNode();
-        if(tPlayer != null)
+        SkipIter<Player> tPlayer = players.getIterator();
+        while(tPlayer.next())
         {
-	        while(tPlayer.getRight() != null)
-	        {
-	            tGuildRecord = tPlayer.getElement().getGuildRecords().getFirstNode();
-	            while(tGuildRecord != null)
-	            {
-	                if(tGuildRecord.getElement().getQuestItemID() >= 0)
-	                	tGuildRecord.getElement().setQuestItem(getItem(tGuildRecord.getElement().getQuestItemID()));
-	                if(tGuildRecord.getElement().getQuestMonsterID() >= 0)
-	                	tGuildRecord.getElement().setQuestMonster(getMonsterEden().getMonster(tGuildRecord.getElement().getQuestMonsterID()));
-	                tGuildRecord = tGuildRecord.getNext();
-	            }
-	            tPlayer = tPlayer.getRight();
-	        }
+            tGuildRecord = tPlayer.element().getGuildRecords().getIterator();
+            while(tGuildRecord.next())
+            {
+                if(tGuildRecord.element().getQuestItemID() >= 0)
+                	tGuildRecord.element().setQuestItem(getItem(tGuildRecord.element().getQuestItemID()));
+                if(tGuildRecord.element().getQuestMonsterID() >= 0)
+                	tGuildRecord.element().setQuestMonster(getMonsterEden().getMonster(tGuildRecord.element().getQuestMonsterID()));
+            }
         }
         
         // Cleans up dead itemInstances
-        ListNode<ItemInstance> tItem = itemInstLoadList.getFirstNode();
+        ListIter<ItemInstance> tItem = itemInstLoadList.getIterator();
         LinkedList<ItemInstance> deadItems = new LinkedList<ItemInstance>();
         
-        while(tItem != null)
-        {
-            if(!tItem.getElement().setItem(getItem(tItem.getElement().getItemID())))
-                deadItems.insert(tItem.getElement());
-            tItem = tItem.getNext();
-        }
+        while(tItem.next())
+            if(!tItem.element().setItem(getItem(tItem.element().getItemID())))
+                deadItems.insert(tItem.element());
+
         removeDeadItemInstances(deadItems);
         
-        ListNode<MonsterInstance> tMon = monInstLoadList.getFirstNode();
+        ListIter<MonsterInstance> tMon = monInstLoadList.getIterator();
         LinkedList<MonsterInstance> deadMonsters = new LinkedList<MonsterInstance>();
         
-        while(tMon != null)
-        {
-            if(!tMon.getElement().setMonster(getMonsterEden().getMonster(tMon.getElement().getMonsterID())))
-                deadMonsters.insert(tMon.getElement());
-            
-            tMon = tMon.getNext();
-        }
+        while(tMon.next())
+            if(!tMon.element().setMonster(getMonsterEden().getMonster(tMon.element().getMonsterID())))
+                deadMonsters.insert(tMon.element());
+
         removeDeadMonsterInstances(deadMonsters);
         
-        ListNode<SpellReference> tSpell = spellRefLoadList.getFirstNode();
+        ListIter<SpellReference> tSpell = spellRefLoadList.getIterator();
         LinkedList<SpellReference> deadSpells = new LinkedList<SpellReference>();
-        while(tSpell != null)
-        {
-            if(!tSpell.getElement().setSpell(getSpellBook().getSpell(tSpell.getElement().getSpellID()).getSpell()))
-                deadSpells.insert(tSpell.getElement());
-            tSpell = tSpell.getNext();
-        }
+        while(tSpell.next())
+            if(!tSpell.element().setSpell(getSpellBook().getSpell(tSpell.element().getSpellID()).getSpell()))
+                deadSpells.insert(tSpell.element());
+
         removeDeadSpellReferences(deadSpells);
         
         
         // Load player's race data.
         // Load players into rooms.
-		tPlayer = players.firstNode();
-		if(tPlayer != null)
+		tPlayer = players.getIterator();
+		while(tPlayer.next())
 		{
-			while(tPlayer.getRight() != null)
-			{
-				if(!tPlayer.getElement().postLoadUpdate(this))
-				{ 
-					tPlayer = tPlayer.getRight();
-					players.remove(tPlayer.getLeft().getKey());
-				}
-				else
-				{
-					map.getMapSquare(tPlayer.getElement().getCoord().getX(), tPlayer.getElement().getCoord().getY(), tPlayer.getElement().getCoord().getZ()).getRoom().addPlayer(tPlayer.getElement());
-					tPlayer = tPlayer.getRight();
-				}
-			}
+			if(!tPlayer.element().postLoadUpdate(this))
+				players.remove(tPlayer.key());
+			else
+				map.getMapSquare(tPlayer.element().getCoord().getX(), tPlayer.element().getCoord().getY(), tPlayer.element().getCoord().getZ()).getRoom().addPlayer(tPlayer.element());
 		}
 		
 		/* Finalize store data. */
@@ -654,18 +627,14 @@ public class DataBank
         // parse anywhere where guildRecords are stored and removed dead ones.
         // Only players hold guild records.
         
-        QuadNode<Player> tNode = players.firstNode();
-        ListNode<GuildRecord> qNode;
-        while(deadGuildRecords.getSize() > 0 && tNode.getRight() != null)
+        SkipIter<Player> tNode = players.getIterator();
+        ListIter<GuildRecord> qNode;
+        while(deadGuildRecords.getSize() > 0 && tNode.next())
         {
-            qNode = deadGuildRecords.getFirstNode();
-            while(qNode != null)
-            {
-                if(tNode.getElement().removeGuildRecord(qNode.getElement()))
-                    deadGuildRecords.remove(qNode);
-                qNode = qNode.getNext();
-            }
-            tNode = tNode.getRight();
+            qNode = deadGuildRecords.getIterator();
+            while(qNode.next())
+                if(tNode.element().removeGuildRecord(qNode.element()))
+                    deadGuildRecords.remove(qNode.element());
         }
     }
     
@@ -676,22 +645,18 @@ public class DataBank
         // store
         // at present, only players use finalization
         
-        QuadNode<Player> tNode = players.firstNode();
-        ListNode<ItemInstance> iNode;
-        while(deadItems.getSize() > 0 && tNode.getRight() != null)
+        SkipIter<Player> tNode = players.getIterator();
+        ListIter<ItemInstance> iNode;
+        while(deadItems.getSize() > 0 && tNode.next())
         {
-            iNode = deadItems.getFirstNode();
-            while(iNode != null)
+            iNode = deadItems.getIterator();
+            while(iNode.next())
             {
-                if(tNode.getElement().removeItem(iNode.getElement()))
-                    deadItems.remove(iNode);
-                else if(tNode.getElement().getBankAccount().removeItem(iNode.getElement()) != null)
-                    deadItems.remove(iNode);
-                
-                iNode = iNode.getNext();
+                if(tNode.element().removeItem(iNode.element()))
+                    deadItems.remove(iNode.element());
+                else if(tNode.element().getBankAccount().removeItem(iNode.element()) != null)
+                    deadItems.remove(iNode.element());
             }
-            
-            tNode = tNode.getRight();
         }
         
         // TODO: Add in monster, when monster switches.
@@ -707,24 +672,20 @@ public class DataBank
         // Locations: Players (companions), Dungeons, confinement
         // at present only players use finalization
         
-        QuadNode<Player> tNode = players.firstNode();
-        ListNode<MonsterInstance> mNode;
-        while(deadMonsters.getSize() > 0 && tNode.getRight() != null)
+        SkipIter<Player> tNode = players.getIterator();
+        ListIter<MonsterInstance> mNode;
+        while(deadMonsters.getSize() > 0 && tNode.next())
         {
-            mNode = deadMonsters.getFirstNode();
-            while(mNode != null)
+            mNode = deadMonsters.getIterator();
+            while(mNode.next())
             {
                 for(byte i = 0; i < Player.MAXCOMPANIONS; i++)
-                    if(tNode.getElement().getCompanion(i) == mNode.getElement())
+                    if(tNode.element().getCompanion(i) == mNode.element())
                     {
-                        tNode.getElement().setCompanion(i, null);//, Player.MINBIND);
-                        deadMonsters.remove(mNode);
+                        tNode.element().setCompanion(i, null);//, Player.MINBIND);
+                        deadMonsters.remove(mNode.element());
                     }
-                
-                mNode = mNode.getNext();
             }
-            
-            tNode = tNode.getRight();
         }
     }
     
@@ -736,18 +697,16 @@ public class DataBank
         // Locations: Player's spell book, items, guild spellBook
         // Presently implemented: player
         
-        QuadNode<Player> pNode = players.firstNode();
-        ListNode<SpellReference> sNode;
-        while(deadSpells.getSize() > 0 && pNode.getRight() != null)
+        SkipIter<Player> pNode = players.getIterator();
+        ListIter<SpellReference> sNode;
+        while(deadSpells.getSize() > 0 && pNode.next())
         {
-            sNode = deadSpells.getFirstNode();
-            while(sNode != null)
+            sNode = deadSpells.getIterator();
+            while(sNode.next())
             {
-                if(!pNode.getElement().getSpellBook().removeSpell(sNode.getElement()))
-                    deadSpells.remove(sNode);
-                sNode = sNode.getNext();
+                if(!pNode.element().getSpellBook().removeSpell(sNode.element()))
+                    deadSpells.remove(sNode.element());
             }
-            pNode = pNode.getRight();
         }
     }
 	
@@ -769,13 +728,10 @@ public class DataBank
 				dos.writeInt(mapLevel.getNumRooms());
 
 				// write room data
-				ListNode<Room> tNode = mapLevel.getRooms().getFirstNode();
+				ListIter<Room> tNode = mapLevel.getRooms().getIterator();
 
-				while(tNode != null)
-				{
-					tNode.getElement().writeRoom(dos);
-					tNode = tNode.getNext();
-				}
+				while(tNode.next())
+					tNode.element().writeRoom(dos);
 
 				// write square data
 				for(byte x = 0; x < mapLevel.getWidth(); x++)
@@ -810,16 +766,11 @@ public class DataBank
 			dos.writeByte(MONSTERFILEVERSION);
 			dos.writeInt((int)monsterEden.getMonsters().getSize());
 			
-			QuadNode<Monster> tNode = monsterEden.getMonsters().firstNode();
+			SkipIter<Monster> tNode = monsterEden.getMonsters().getIterator();
 			
-			while(tNode.getRight() != null)
-			{
-				if(!tNode.getElement().getName().contains(Util.NOSTRING))
-				{
-					success = tNode.getElement().writeMonster(dos);
-				}
-				tNode = tNode.getRight();
-			}
+			while(tNode.next())
+				if(!tNode.element().getName().contains(Util.NOSTRING))
+					success = tNode.element().writeMonster(dos);
 			
 			dos.close();
 			fos.close();
@@ -845,13 +796,10 @@ public class DataBank
 			
 			dos.writeInt((int)itemTypes.getSize());
 			
-			QuadNode<Item> tNode = itemTypes.firstNode();
+			SkipIter<Item> tNode = itemTypes.getIterator();
 			
-			while(tNode.getKey() != Integer.MAX_VALUE)
-			{
-				success = tNode.getElement().writeItem(dos);
-				tNode = tNode.getRight();
-			}
+			while(tNode.next())
+				success = tNode.element().writeItem(dos);
 			
 			dos.close();
 			fos.close();
@@ -873,12 +821,9 @@ public class DataBank
 			DataOutputStream dos = new DataOutputStream(fos);
 			
 			dos.writeByte(raceTypes.getSize());
-			QuadNode<Race> tNode = raceTypes.firstNode();
-			while(tNode.getRight() != null)
-			{
-				tNode.getElement().writeRace(dos);
-				tNode = tNode.getRight();
-			}
+			SkipIter<Race> tNode = raceTypes.getIterator();
+			while(tNode.next())
+				tNode.element().writeRace(dos);
 			
 			dos.close();
 			fos.close();
@@ -900,13 +845,10 @@ public class DataBank
 			
 			dos.writeInt((int)guildTypes.getSize());
 			
-			QuadNode<Guild> tNode = guildTypes.firstNode();
+			SkipIter<Guild> tNode = guildTypes.getIterator();
 			
-			while(tNode.getKey() != Integer.MAX_VALUE)
-			{
-				success = tNode.getElement().writeGuild(dos);
-				tNode = tNode.getRight();
-			}
+			while(tNode.next())
+				success = tNode.element().writeGuild(dos);
 			
 			dos.close();
 			fos.close();
@@ -932,12 +874,11 @@ public class DataBank
 			
 			dos.writeShort(spellBook.getNumberSpells());
 			
-			QuadNode<SpellReference> sNode = spellBook.getAllSpells().firstNode();
-			while(sNode.getRight() != null)
+			SkipIter<SpellReference> sNode = spellBook.getAllSpells().getIterator();
+			while(sNode.next())
 			{
-				sNode.getElement().getSpell().writeSpell(dos);
-				sNode.getElement().writeSpellRef(dos);
-				sNode = sNode.getRight();
+				sNode.element().getSpell().writeSpell(dos);
+				sNode.element().writeSpellRef(dos);
 			}
 			
 			dos.close();
@@ -970,13 +911,10 @@ public class DataBank
             dos.writeByte(PLAYERFILEVERSION);
             dos.writeInt((int)players.getSize());
             
-            QuadNode<Player> tNode = players.firstNode();
+            SkipIter<Player> tNode = players.getIterator();
             
-            while(tNode.getRight() != null)
-            {
-                success = tNode.getElement().writePlayer(dos);
-                tNode = tNode.getRight();
-            }
+            while(tNode.next())
+                success = tNode.element().writePlayer(dos);
 
             dos.writeInt(0); // Flag for extension.
             // TODO: Player team saving
@@ -1109,13 +1047,12 @@ public class DataBank
 	{
 		String[] raceNames = new String[raceTypes.getSize()];
 		int count = 0;
-		QuadNode<Race> tNode = raceTypes.firstNode();
+		SkipIter<Race> tNode = raceTypes.getIterator();
 		
-		while(tNode.getRight() != null)
+		while(tNode.next())
 		{
-			raceNames[count] = tNode.getElement().getName();
-			tNode = tNode.getRight();
-			count += 1;
+			raceNames[count] = tNode.element().getName();
+			count++;
 		}
 		
 		return raceNames;
@@ -1128,14 +1065,11 @@ public class DataBank
 	 */
 	public Race getRace(String raceName)
 	{
-		QuadNode<Race> tNode = raceTypes.firstNode();
+		SkipIter<Race> tNode = raceTypes.getIterator();
 		
-		while(tNode.getRight() != null)
-		{
-			if(tNode.getElement().getName().equalsIgnoreCase(raceName))
-				return tNode.getElement();
-			tNode = tNode.getRight();
-		}
+		while(tNode.next())
+			if(tNode.element().getName().equalsIgnoreCase(raceName))
+				return tNode.element();
 		
 		return null;
 	}
@@ -1159,16 +1093,15 @@ public class DataBank
 		if(raceTypes.getSize() > MAXRACECOUNT)
 			return null;
 
-		QuadNode<Race> tRace = raceTypes.firstNode();
+		SkipIter<Race> tRace = raceTypes.getIterator();
 		byte newRaceID = 0;
 			
-		while(tRace.getRight() != null)
+		while(tRace.next())
 		{
-			if(tRace.getKey() > newRaceID)
+			if(tRace.key() > newRaceID)
 				break;
 			
 			newRaceID++;
-			tRace = tRace.getRight();
 		}
 		
 		Race newRace = new Race(newRaceID);
@@ -1189,7 +1122,7 @@ public class DataBank
 	public Monster getRandomMonster(byte maxLevel)
 	{
 		// TODO Fix this.
-		return monsterEden.getRandomMonster(maxLevel, 1).getFirstNode().getElement().getMonster();
+		return monsterEden.getRandomMonster(maxLevel, 1).getFirst().monster;
 	}
 	
 	/**
@@ -1280,13 +1213,12 @@ public class DataBank
 		
 		String[] guildNames = new String[guildTypes.getSize()];
 		short count = 0;
-		QuadNode<Guild> tNode = guildTypes.firstNode();
+		SkipIter<Guild> tNode = guildTypes.getIterator();
 		
-		while(tNode.getRight() != null)
+		while(tNode.next())
 		{
-			guildNames[count] = tNode.getElement().getName();
+			guildNames[count] = tNode.element().getName();
 			count++;
-			tNode = tNode.getRight();
 		}
 		
 		return guildNames;
@@ -1294,14 +1226,12 @@ public class DataBank
 	
 	public Guild getGuild(String guildName)
 	{
-		QuadNode<Guild> tNode = guildTypes.firstNode();
+		SkipIter<Guild> tNode = guildTypes.getIterator();
 		
-		while(tNode.getRight() != null)
-		{
-			if(tNode.getElement().getName().equalsIgnoreCase(guildName))
-				return tNode.getElement();
-			tNode = tNode.getRight();
-		}
+		while(tNode.next())
+			if(tNode.element().getName().equalsIgnoreCase(guildName))
+				return tNode.element();
+
 		return null;
 	}
 	
@@ -1321,25 +1251,20 @@ public class DataBank
 			return newGuild;
 		}
 		
-		QuadNode<Guild> tNode = guildTypes.firstNode();
+		SkipIter<Guild> tNode = guildTypes.getIterator();
 		
-		if(tNode.getKey() > 0)
-		{
-			newGuild = new Guild((byte)0);
-			guildTypes.insert(newGuild, 0);
-			return newGuild;
-		}
 		// New guild code
-		
-		while(tNode.getKey() != Integer.MAX_VALUE && tNode.getKey() <= MAXGUILDCOUNT)
+		byte lastKey = 0;
+		while(tNode.next() && tNode.key() <= MAXGUILDCOUNT)
 		{
-			if(tNode.getRight().getKey() - tNode.getKey() > 1)
+			if(tNode.key() > lastKey)
 			{
-				newGuild = new Guild((byte)(tNode.getKey() + 1));
+				newGuild = new Guild(lastKey);
 				guildTypes.insert(newGuild, (int)newGuild.getGuildID());
 				return newGuild;
 			}
-			tNode = tNode.getRight();
+			
+			lastKey++;
 		}
 		
 		return null;
@@ -1347,16 +1272,11 @@ public class DataBank
 	
 	public void deleteGuild(String name)
 	{
-		QuadNode<Guild> tNode = guildTypes.firstNode();
+		SkipIter<Guild> tNode = guildTypes.getIterator();
 		
-		while(tNode.getElement() != null)
-		{
-			if(tNode.getElement().getName().equalsIgnoreCase(name))
-			{
-				guildTypes.remove(tNode.getKey());
-			}
-			tNode = tNode.getRight();
-		}
+		while(tNode.next())
+			if(tNode.element().getName().equalsIgnoreCase(name))
+				guildTypes.remove(tNode.key());
 	}
 	
 	public void deleteGuild(Guild guild)
@@ -1366,14 +1286,14 @@ public class DataBank
 	
 	public boolean validGuildName(String newName)
 	{
-		QuadNode<Guild> tNode = guildTypes.firstNode();
+		SkipIter<Guild> tNode = guildTypes.getIterator();
 		
-		while(tNode.getElement() != null)
-		{
-			if(tNode.getElement().getName().equalsIgnoreCase(newName))
+		if(newName.equalsIgnoreCase(Util.NOSTRING))
+			return false;
+		
+		while(tNode.next())
+			if(tNode.element().getName().equalsIgnoreCase(newName))
 				return false;
-			tNode = tNode.getRight();
-		}
 		
 		return true;
 	}
@@ -1416,13 +1336,11 @@ public class DataBank
 	 */
 	public Player getPlayer(String playerName)
 	{
-		QuadNode<Player> tNode = players.firstNode();
-		while(tNode.getRight() != null)
-		{
-			if(tNode.getElement().getName().equalsIgnoreCase(playerName))
-				return tNode.getElement();
-			tNode = tNode.getRight();
-		}
+		SkipIter<Player> tNode = players.getIterator();
+		while(tNode.next())
+			if(tNode.element().getName().equalsIgnoreCase(playerName))
+				return tNode.element();
+		
 		return null;
 	}
 	
@@ -1486,20 +1404,19 @@ public class DataBank
     	if(tSkipList.isEmpty())
     		return freeID;
     	
-    	QuadNode tNode = tSkipList.firstNode();
-    	if(tNode.getKey() > 0)
-    		return freeID;
+    	SkipIter tNode = tSkipList.getIterator();
     	
-    	while(tNode.getRight() != null)
+    	short lastID = 0;
+    	while(tNode.next())
     	{
-    		if(tNode.getKey() + 1 < tNode.getRight().getKey())
+    		if(tNode.key() > lastID)
     			break;
     		
-    		tNode = tNode.getRight();
+    		lastID++;
     	}
     	
-    	if(tNode.getKey() + 1 < tNode.getRight().getKey())
-    		return (short)(tNode.getKey() + 1);
+    	if(lastID < Short.MAX_VALUE)
+    		return (lastID);
     	else
     		return Short.MAX_VALUE;
     }
@@ -1512,17 +1429,13 @@ public class DataBank
     public String[] getPlayerNames()
     {
     	String[] playerNames = new String[players.getSize()];
-    	int count = 0;
-    	QuadNode<Player> tNode = players.firstNode();
+    	SkipIter<Player> tNode = players.getIterator();
     	
-    	if(tNode == null)
+    	if(tNode.last())
     		return null;
     	
-    	for(int i = 0; tNode.getRight() != null; i++)
-    	{
-    		playerNames[i] = tNode.getElement().getName();
-    		tNode = tNode.getRight();
-    	}
+    	for(int i = 0; tNode.next(); i++)
+    		playerNames[i] = tNode.element().getName();
     	
     	return playerNames;
     }
@@ -1539,14 +1452,11 @@ public class DataBank
 		if(itemTypes.getSize() <= 0)
 			return null;
 		
-		QuadNode<Item> tNode = itemTypes.firstNode();
+		SkipIter<Item> tNode = itemTypes.getIterator();
 		
-		while(tNode.getRight() != null)
-		{
-			if(tNode.getElement().getName().equalsIgnoreCase(itemName))
-				return tNode.getElement();
-			tNode = tNode.getRight();
-		}
+		while(tNode.next())
+			if(tNode.element().getName().equalsIgnoreCase(itemName))
+				return tNode.element();
 		
 		return null;
 	}
@@ -1583,14 +1493,11 @@ public class DataBank
 			return null;
 		
 		LinkedList<Item> itemList = new LinkedList<Item>();
-		QuadNode<Item> tNode = itemTypes.firstNode();
+		SkipIter<Item> tNode = itemTypes.getIterator();
 		
-		while(tNode.getRight() != null)
-		{
-			if(tNode.getElement().getItemType() == itemType)
-				itemList.insert(tNode.getElement());
-			tNode = tNode.getRight();
-		}
+		while(tNode.next())
+			if(tNode.element().getItemType() == itemType)
+				itemList.insert(tNode.element());
 		
 		return itemList;
 	}
@@ -1599,26 +1506,20 @@ public class DataBank
 	{
 		LinkedList<Item> itemList = getItemsOfType(itemType);
 		
-		if(itemList == null || itemList.getSize() == 0)
+		if(itemList == null || itemList.getSize() <= 0)
 			return null;
 		
-		if(itemList.getSize() > 0)
+		String[] itemNames = new String[itemList.getSize()];
+		int count = 0;
+		ListIter<Item> tNode = itemList.getIterator();
+		
+		while(tNode.next())
 		{
-			String[] itemNames = new String[itemList.getSize()];
-			int count = 0;
-			ListNode<Item> tNode = itemList.getFirstNode();
-			
-			while(tNode != null)
-			{
-				itemNames[count] = tNode.getElement().getName();
-				count += 1;
-				tNode = tNode.getNext();
-			}
-		
-			return itemNames;
+			itemNames[count] = tNode.element().getName();
+			count += 1;
 		}
-		
-		return null;
+	
+		return itemNames;
 	}
 	
 	public Item newItem()
@@ -1626,25 +1527,14 @@ public class DataBank
 		SkipList<Item> itemTypes = itemCloset.getItems();
 		
 		short newID = 0;
-		if(itemTypes.getSize() > 0)
+		
+		SkipIter<Item> tNode = itemTypes.getIterator();
+		while(tNode.next())
 		{
-			QuadNode<Item> tNode = itemTypes.firstNode();
+			if(newID < tNode.key())
+				break;
 			
-			if(tNode.getKey() < 1)
-			{
-				while(true)
-				{
-					if(tNode.getKey() >= Short.MAX_VALUE)
-						return null;
-					
-					if(tNode.getRight().getKey() > (tNode.getKey() + 1))
-					{
-						newID = (short)(tNode.getKey() + 1);
-						break;
-					}
-					tNode = tNode.getRight();
-				}
-			}
+			newID++;
 		}
 		
 		Item newItem = new Item(newID);
@@ -1667,14 +1557,11 @@ public class DataBank
 	public void deleteItem(String name)
 	{
 		SkipList<Item> itemTypes = itemCloset.getItems();
-		QuadNode<Item> tNode = itemTypes.firstNode();
+		SkipIter<Item> tNode = itemTypes.getIterator();
 		
-		while(tNode.getRight() != null)
-		{
-			if(tNode.getElement().getName().equalsIgnoreCase(name))
-				itemTypes.remove((int)tNode.getElement().getID());
-			tNode = tNode.getRight();
-		}
+		while(tNode.next())
+			if(tNode.element().getName().equalsIgnoreCase(name))
+				itemTypes.remove((int)tNode.element().getID());
 	}
 	
 	public boolean validItemName(String name)
@@ -1682,14 +1569,11 @@ public class DataBank
 		if(name.equalsIgnoreCase(Util.NOSTRING))
 			return false;
 		
-		QuadNode<Item> tNode = itemCloset.getItems().firstNode();
+		SkipIter<Item> tNode = itemCloset.getItems().getIterator();
 		
-		while(tNode.getRight() != null)
-		{
-			if(tNode.getElement().getName().equalsIgnoreCase(name))
+		while(tNode.next())
+			if(tNode.element().getName().equalsIgnoreCase(name))
 				return false;
-			tNode = tNode.getRight();
-		}
 		
 		return true;
 	}

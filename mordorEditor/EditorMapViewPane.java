@@ -23,6 +23,7 @@ import mordorData.MapSquare;
 import mordorData.SquareFeature;
 import mordorEnums.Direction;
 
+import structures.ListIter;
 import structures.ListNode;
 
 
@@ -364,15 +365,12 @@ public class EditorMapViewPane extends JPanel implements MouseListener, MouseMot
 	
 	private void setStud(MapSquare tSquare)
 	{
-		ListNode<MapSquare> tNode = tSquare.getRoom().getSquares().getFirstNode();
+		ListIter<MapSquare> tNode = tSquare.getRoom().getSquares().getIterator();
 		
 		
-		while(tNode != null)
-		{
-			if(!tNode.getElement().hasEmptyFeature())
+		while(tNode.next())
+			if(!tNode.element().hasEmptyFeature())
 				return;
-			tNode = tNode.getNext();
-		}
 		
 		tSquare.getRoom().setStud(true);
 		updateRoom(tSquare);
@@ -385,15 +383,11 @@ public class EditorMapViewPane extends JPanel implements MouseListener, MouseMot
 	 */
 	private void updateRoom(MapSquare tSquare)
 	{
-		ListNode<MapSquare> tNode = tSquare.getRoom().getSquares().getFirstNode();
+		ListIter<MapSquare> tNode = tSquare.getRoom().getSquares().getIterator();
 		
-		while(tNode != null)
-		{
-			if(tNode.getElement() != tSquare)
-				updateSquare(tNode.getElement());
-			
-			tNode = tNode.getNext();
-		}
+		while(tNode.next())
+			if(tNode.element() != tSquare)
+				updateSquare(tNode.element());
 
 		tSquare.getRoom().setStud(true);
 		updateSquare(tSquare);

@@ -22,6 +22,7 @@ import mordorMessenger.MordorMessenger;
 import mordorMessenger.MordorMessengerDestination;
 
 import structures.QuadNode;
+import structures.SkipIter;
 import structures.SkipList;
 
 /**
@@ -238,7 +239,7 @@ public class StoreInventory extends JPanel implements Scrollable
 	 */
 	public void updateList()
 	{
-		QuadNode<RecordField> node = records.firstNode();
+		SkipIter<RecordField> node = records.getIterator();
 		
 		removeAll();
 		
@@ -247,31 +248,22 @@ public class StoreInventory extends JPanel implements Scrollable
 		
 		setLayout(new GridLayout(records.getSize(), 1));
 		
-		while(node.getRight() != null)
+		while(node.next())
 		{
-			if(!node.getElement().record.isEmptyRecord() || editor)
-			{
-				// This is a legal  record.
-				add(node.getElement().panel);
-				node = node.getRight();
-			}
+			if(!node.element().record.isEmptyRecord() || editor)
+				add(node.element().panel); // This is a legal  record.
 			else
-			{
-				QuadNode<RecordField> temp = node;
-				records.remove(temp.getKey());
-				node = node.getRight();
-			}
+				records.remove(node.key());
 		}
 		
 		// Clear the store's current inventory.
 		store.getInventory().clearList();
 		
 		// Now fill it up with the new list.
-		node = records.firstNode();
-		while(node.getRight() != null)
+		node = records.getIterator();
+		while(node.next())
 		{
-			store.getInventory().insert(node.getElement().record, (int)node.getElement().record.getItemID());
-			node = node.getRight();
+			store.getInventory().insert(node.element().record, (int)node.element().record.getItemID());
 		}
 	}
 	
@@ -282,19 +274,16 @@ public class StoreInventory extends JPanel implements Scrollable
 	{
 		records = new SkipList<RecordField>();
 		
-		QuadNode<StoreRecord> node = store.getInventory().firstNode();
+		SkipIter<StoreRecord> node = store.getInventory().getIterator();
 		
-		if(node == null)
+		if(store.getInventory().isEmpty())
 		{
 			updateList();
 			return;
 		}
 		
-		while(node.getRight() != null)
-		{
-			insertRecord(node.getElement());
-			node = node.getRight();
-		}
+		while(node.next())
+			insertRecord(node.element());
 	}
 	
 	/**
@@ -304,23 +293,15 @@ public class StoreInventory extends JPanel implements Scrollable
 	 */
 	public boolean validateInventory()
 	{
-		QuadNode<RecordField> node = records.firstNode();
+		SkipIter<RecordField> node = records.getIterator();
 		
-		while(node.getRight() != null)
+		while(node.next())
 		{
-			if(node.getElement().record.isEmptyRecord())
-			{
-				QuadNode<RecordField> temp = node;
-				node = node.getRight();
-				records.remove(temp.getKey());
-			}
+			if(node.element().record.isEmptyRecord())
+				records.remove(node.key());
 			else
-			{
-				if(editor && !((RecordFieldEditor)node.getElement()).validateRecord())
+				if(editor && !((RecordFieldEditor)node.element()).validateRecord())
 					return false;
-				
-				node = node.getRight();
-			}
 		}
 		
 		return true;
@@ -335,15 +316,11 @@ public class StoreInventory extends JPanel implements Scrollable
 		if(!validateInventory())
 			return false;
 		
-		QuadNode<RecordField> node = records.firstNode();
+		SkipIter<RecordField> node = records.getIterator();
 		
-		while(node.getRight() != null)
-		{
-			if(editor && !((RecordFieldEditor)node.getElement()).updateRecord(false))
+		while(node.next())
+			if(editor && !((RecordFieldEditor)node.element()).updateRecord(false))
 				return false;
-			
-			node = node.getRight();
-		}
 		
 		return true;
 	}

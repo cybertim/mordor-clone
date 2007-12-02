@@ -2,46 +2,48 @@ package mordorEnums;
 
 public enum ItemTypes
 {
-	Hands(0),
-	Dagger(1),
-	Cross(2),
-	Sword(3),
-	Staff(4),
-	Mace(5),
-	Axe(6),
-	Hammer(7), // Last weapon type in this group.
-	LeatherArmor(8),
-	ChainArmor(9),
-	PlateArmor(10),
-	Shield(11),
-	Cap(12),
-	Helmet(13),
-	Gloves(14),
-	Gauntlets(15),
-	Cloak(16),
-	Bracers(17),
-	Sash(18),
-	Belt(19),
-	Boots(20),
-	Ring(21),
-	Amulet(22),
-	Potion(23),
-	Scroll(24),
-	Tome(25),
-	Dust(26),
-	Crystal(27),
-	Rod(28), // Weapon
-	Stone(29),
-	Sphere(30),
-	Cube(31),
-	Artifact(32),
-	GuildCrest(33),
-	Miscellaneous(34);
+	Hands(0, BodyParts.Weapon),
+	Dagger(1, BodyParts.Weapon),
+	Cross(2, BodyParts.Weapon),
+	Sword(3, BodyParts.Weapon),
+	Staff(4, BodyParts.Weapon),
+	Mace(5, BodyParts.Weapon),
+	Axe(6, BodyParts.Weapon),
+	Hammer(7, BodyParts.Weapon),
+	LeatherArmor(8, BodyParts.Torso),
+	ChainArmor(9, BodyParts.Torso),
+	PlateArmor(10, BodyParts.Torso),
+	Shield(11, BodyParts.Shield),
+	Cap(12, BodyParts.Head),
+	Helmet(13, BodyParts.Head),
+	Gloves(14, BodyParts.Hands),
+	Gauntlets(15, BodyParts.Hands),
+	Cloak(16, BodyParts.Shoulders),
+	Bracers(17, BodyParts.Wrist),
+	Sash(18, BodyParts.Sash),
+	Belt(19, BodyParts.Waist),
+	Boots(20, BodyParts.Foot),
+	Ring(21, BodyParts.Finger),
+	Amulet(22, BodyParts.Neck),
+	Potion(23, BodyParts.Objects),
+	Scroll(24, BodyParts.Objects),
+	Tome(25, BodyParts.Objects),
+	Dust(26, BodyParts.Objects),
+	Crystal(27, BodyParts.Objects),
+	Rod(28, BodyParts.Weapon),
+	Stone(29, BodyParts.Objects),
+	Sphere(30, BodyParts.Objects),
+	Cube(31, BodyParts.Objects),
+	Artifact(32, BodyParts.Bindable),
+	GuildCrest(33, BodyParts.Objects),
+	Miscellaneous(34, BodyParts.Bindable);
 
 	private final byte itemType;
-	ItemTypes(int nItemType)
+	private BodyParts equippingPart;
+	ItemTypes(int nItemType, BodyParts equipped)
 	{
 		itemType = (byte)nItemType;
+		equippingPart = equipped;
 	}
 	
 	public byte value()
@@ -50,23 +52,32 @@ public enum ItemTypes
 	}
 	
 	/**
+	 * Retrieve the part of the body that equips this item type.
+	 * @return BodyParts
+	 */
+	public BodyParts getEquippingPart()
+	{
+		return equippingPart;
+	}
+	
+	/**
 	 * Is this type a weapon.
 	 * @return True if it is a weapon.
 	 */
-	public boolean isWeapon()
+/*	public boolean isWeapon()
 	{
 		return (itemType == 28 || itemType <= 7);
-	}
+	}*/
 	
 	/**
 	 * Is this a usable type of item (e.g. potions)
 	 * This does not include if a spell can be cast from the item.
 	 * @return	True if it is a usable type.
 	 */
-	public boolean isUsable()
+/*	public boolean isUsable()
 	{
 		return (itemType != 28 && itemType <= 31 && itemType >= 23);
-	}
+	}*/
 	
 	/**
 	 * Get the type from a value.
@@ -82,8 +93,8 @@ public enum ItemTypes
 		return Hands;
 	}
 	
-	public static boolean isWeaponStatic(byte nItemType)
+	/*public static boolean isWeaponStatic(byte nItemType)
 	{
 		return nItemType == ItemTypes.Rod.value() || (nItemType >= ItemTypes.Hands.value() && nItemType <= ItemTypes.Hammer.value());
-	}
+	}*/
 }

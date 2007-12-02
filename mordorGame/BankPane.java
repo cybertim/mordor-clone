@@ -15,6 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
+import structures.ListIter;
 import structures.ListNode;
 
 import mordorData.BankAccount;
@@ -155,12 +156,9 @@ public class BankPane extends JPanel implements ActionListener
 		// TODO Expand to handle parites.
 		updateSummary(account);
 		items.clear();
-		ListNode<ItemInstance> iNode = account.getItems().getFirstNode();
-		while(iNode != null)
-		{
-			items.addElement(iNode.getElement());
-			iNode = iNode.getNext();
-		}
+		ListIter<ItemInstance> iNode = account.getItems().getIterator();
+		while(iNode.next())
+			items.addElement(iNode.element());
 	}
 	
 	private void updateSummary(BankAccount account)
@@ -224,7 +222,7 @@ public class BankPane extends JPanel implements ActionListener
 		{
 			// If an item is selected
 			if(liItemList.getSelectedValue() != null)
-				infoPane.showItem(dataBank, (ItemInstance)liItemList.getSelectedValue());
+				infoPane.showItem((ItemInstance)liItemList.getSelectedValue());
 		}
 		else if(e.getSource() == jbRemoveItem)
 		{

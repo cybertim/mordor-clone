@@ -13,7 +13,7 @@ import mordorMessenger.MordorMessenger;
 
 public class Mordor extends JFrame implements ActionListener
 {	
-	private String version = "0.3.3";
+	private String version = "0.3.4b";
 	public String aboutMordor = "<HTML>Mordor Clone of Dejenol<BR>Version" + version + 
 	"<BR><BR>A clone of Mordor: Depths of Dejenol<BR>Created by: August Junkala" + 
 	"<BR>Based on game by:David Allen<BR><BR>" + 
@@ -92,7 +92,7 @@ public class Mordor extends JFrame implements ActionListener
 		
 		desktop = new JDesktopPane();
 		
-		informationWindow = new InformationPanel("Information", true, false, true, true);
+		informationWindow = new InformationPanel("Information", true, false, true, true, dataBank);
 		informationWindow.setSize(250, 330);
 		informationWindow.setLocation(5, 5);
 		//informationWindow.setVisible(true);

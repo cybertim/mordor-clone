@@ -2,21 +2,21 @@ package mordorEnums;
 
 public enum BodyParts
 {
-	None(0), // For none body parts.
-	Hands(1),
-	Weapon(2),
-	Shield(3),
-	Torso(4),
-	Head(5),
-	Gloves(6),
-	Cloak(7),
-	Bracers(8),
-	Sash(9),
-	Belt(10),
-	Boots(11),
-	Finger(12),
-	Neck(13),
-	Crest(14);
+	Objects(0), // For none body parts.
+	Bindable(0), // For objects that can bind to the player.
+	Weapon(1),
+	Shield(2),
+	Torso(3),
+	Head(4),
+	Hands(5),
+	Shoulders(6),
+	Wrist(7),
+	Sash(8),
+	Waist(9),
+	Foot(10),
+	Finger(11),
+	Neck(12),
+	Crest(13);
 	
 	private final byte bodyPart;
 	BodyParts(int nBodyPart)

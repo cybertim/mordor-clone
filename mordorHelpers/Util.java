@@ -20,6 +20,7 @@ public final class Util
 	public static final byte MAX_MEAINGFUL_COAVALUES = 66;
 	
 	/* Items */
+	public static final double ITEM_UNCURSE_MULTIPLIER = 1.6;
 	
 	/* Player */
 	
@@ -31,11 +32,18 @@ public final class Util
 	
 	/* Rooms */
 	
+	/* Store */
+	public static final double STORE_ID_ADJUSTMENT = 0.25;
+	public static final double STORE_ALIGN_ADJUSTMENT = 0.40;
+	public static final double STORE_SELL_MARKUP = 1.25;
+	public static final double STORE_BUY_MAXADJUSTMENT = 0.25;
+	
 	protected Util()
 	{
 		
 	}
 	
+	/*
 	public static BodyParts getEquippingBodyPart(ItemTypes itemType)
 	{
 		switch(itemType)
@@ -82,12 +90,12 @@ public final class Util
 		}
 		
 		return BodyParts.None;
-	}
+	}*/
 	
-	public static boolean isEquipment(ItemTypes itemType)
+	/*public static boolean isEquipment(ItemTypes itemType)
 	{
-		return (getEquippingBodyPart(itemType) != BodyParts.None);
-	}
+		return (itemType.getEquippingPart() != BodyParts.Objects);
+	}*/
 	
 	/**
 	 * Takes an integer and if it is below min, or above max, sets

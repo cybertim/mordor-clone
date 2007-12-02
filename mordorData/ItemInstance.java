@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.util.Random;
 
 import mordorEnums.Alignment;
+import mordorEnums.BodyParts;
 import mordorEnums.Identification;
 import mordorHelpers.Util;
 
@@ -21,6 +22,7 @@ public class ItemInstance
 	private Item item;
 	private boolean cursed;
 	private short charges;
+	private short stackSize;
 	private Identification idLevel;
 	private Alignment alignment;
 	
@@ -32,6 +34,7 @@ public class ItemInstance
 		charges = item.getSpellCasts();
 		idLevel = Identification.Nothing;
 		alignment = getRandomAlignment();
+		stackSize = 1;
 	}
 	
 	ItemInstance(short nItemID)
@@ -42,6 +45,7 @@ public class ItemInstance
 		charges = 0;
 		idLevel = Identification.Nothing;
 		alignment = Alignment.Neutral;
+		stackSize = 1;
 	}
 	
 	/**
@@ -78,6 +82,15 @@ public class ItemInstance
 	}
 	
 	/**
+	 * Retrieve the number of units stacked.
+	 * @return
+	 */
+	public short getStackSize()
+	{
+		return stackSize;
+	}
+	
+	/**
 	 * Set the alignment to a specific type.
 	 * @param align
 	 * @return True if the alignment is legal
@@ -101,7 +114,7 @@ public class ItemInstance
 	 */
 	public boolean combineItems(ItemInstance otherItem)
 	{
-		if(itemID == otherItem.getItemID() && item.getItemType().isUsable() && otherItem.getItem().getItemType().isUsable())
+		if(itemID == otherItem.getItemID() && item.getItemType().getEquippingPart() == BodyParts.Objects && otherItem.getItem().getItemType().getEquippingPart() == BodyParts.Objects)
 		{
 			charges += otherItem.charges;
 			otherItem.charges = 0;
@@ -128,12 +141,47 @@ public class ItemInstance
 	
 	public boolean isUsable()
 	{
-		return (charges > 0 || item.getItemType().isUsable());
+		return (charges > 0 || item.getItemType().getEquippingPart() == BodyParts.Objects);
 	}
 	
 	public short getChargesLeft()
 	{
 		return charges;
+	}
+	
+	/**
+	 * Add an item to the stack.
+	 * @param newItem
+	 * @return true if the item could be added.
+	 */
+	public boolean addToStack(ItemInstance newItem)
+	{
+		if(!equivalent(newItem))
+			return false;
+		
+		stackSize += newItem.getStackSize();
+		return true;
+	}
+	
+	/**
+	 * Remove a single copy of the item from the stack.
+	 * @return ItemInstance. this if stack size <= 1
+	 */
+	public ItemInstance removeFromStack()
+	{
+		if(stackSize <= 1)
+			return this;
+		
+		ItemInstance newItem = new ItemInstance(item);
+		
+		newItem.alignment = alignment;
+		newItem.charges = charges;
+		newItem.cursed = cursed;
+		newItem.idLevel = idLevel;
+		
+		stackSize--;
+		
+		return newItem;
 	}
 	
 	/**
@@ -178,6 +226,15 @@ public class ItemInstance
 	}
 	
 	/**
+	 * Set the Identification level of the item.
+	 * @param newIDLevel
+	 */
+	public void setIDLevel(Identification newIDLevel)
+	{
+		idLevel = newIDLevel;
+	}
+	
+	/**
 	 * Adjust the number of charges for the spell this item casts.
 	 * @param nCharges
 	 */
@@ -194,6 +251,7 @@ public class ItemInstance
 			
 			dos.writeBoolean(cursed);
 			dos.writeShort(charges);
+			dos.writeShort(stackSize);
 			if(idLevel == null)
 				idLevel = Identification.Nothing;
 			dos.writeByte(idLevel.value());
@@ -222,6 +280,7 @@ public class ItemInstance
 			
 			tItem.setCursed(dis.readBoolean());
 			tItem.setCharges(dis.readShort());
+			tItem.stackSize = dis.readShort();
 			tItem.idLevel = Identification.type(dis.readByte());
 			tItem.alignment = Alignment.type(dis.readByte());
 		}
@@ -237,6 +296,22 @@ public class ItemInstance
 	
 	public String toString()
 	{
+		switch(idLevel)
+		{
+		case Nothing:
+			return item.getItemType().getEquippingPart().name();
+		case Little:
+			return item.getItemType().name();
+		case Lots:
+		case Everything:
+			break;
+		}
+
 		return item.getName();
+	}
+	
+	public boolean equivalent(ItemInstance otherItem)
+	{
+		return (cursed == otherItem.cursed && alignment == otherItem.alignment && itemID == otherItem.itemID && idLevel == otherItem.idLevel);
 	}
 }

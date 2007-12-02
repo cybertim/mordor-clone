@@ -7,26 +7,15 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 
-import javax.swing.JInternalFrame;
-import javax.swing.JTabbedPane;
+import javax.swing.JLabel;
 
-import mordorData.DataBank;
 import mordorData.ItemInstance;
-import mordorData.MonsterInstance;
-import mordorData.Player;
-import mordorGame.ItemLabel.DTListener;
 
-public class InformationPanel extends JInternalFrame
+public class StoreItemLabel extends JLabel
 {
-	private PlayerPane playerPane;
-	private BuffersPane buffersPane;
-	private ResistancePane resistPane;
-	private MiscPane miscPane;
-	private JTabbedPane tabs;
-	private DataBank databank;
-	// Look, misc, resist, char, guild
+	private ItemInstance item;
+	private StorePane parent;
 	
-	// For dropping
 	protected DropTarget dropTarget;
 	protected DropTargetListener dtListener;
 	protected int action = DnDConstants.ACTION_COPY;
@@ -42,7 +31,7 @@ public class InformationPanel extends JInternalFrame
 			    return;
 			}
 			      
-			dtde.acceptDrag(InformationPanel.this.action);
+			dtde.acceptDrag(StoreItemLabel.this.action);
 		}
 
 		public void dragExit(DropTargetEvent dte)
@@ -58,7 +47,7 @@ public class InformationPanel extends JInternalFrame
 				return;
 		    }
 		    
-			dtde.acceptDrag(InformationPanel.this.action);
+			dtde.acceptDrag(StoreItemLabel.this.action);
 		}
 
 		public void drop(DropTargetDropEvent dtde)
@@ -80,7 +69,7 @@ public class InformationPanel extends JInternalFrame
 			// We don't do drops with bizarre actions
 			int sa = dtde.getSourceActions();
 
-			if((sa & InformationPanel.this.action) == 0 )
+			if((sa & StoreItemLabel.this.action) == 0 )
 			{
 			    dtde.rejectDrop();             
 			    return;
@@ -89,11 +78,13 @@ public class InformationPanel extends JInternalFrame
 			// Everything checks out.
 			try
 			{
-				dtde.acceptDrop(InformationPanel.this.action);
+				dtde.acceptDrop(StoreItemLabel.this.action);
 				Object data = dtde.getTransferable().getTransferData(ItemInstanceTransferable.itemInstanceFlavor);
 					
 				if(data != null)
-					InformationPanel.this.showItem((ItemInstance)data);
+					StoreItemLabel.this.changeItem((ItemInstance)data);
+				else
+					StoreItemLabel.this.changeItem(null);
 			}
 			catch (Exception e)
 			{
@@ -109,7 +100,7 @@ public class InformationPanel extends JInternalFrame
 			    return;
 			}
 
-			dtde.acceptDrag(InformationPanel.this.action); 
+			dtde.acceptDrag(StoreItemLabel.this.action); 
 		}
 		
 		private boolean isDragOk(DropTargetDragEvent e)
@@ -119,54 +110,39 @@ public class InformationPanel extends JInternalFrame
 			
 		    int sa = e.getSourceActions();
 		    
-		    if ((sa & InformationPanel.this.action) == 0)
+		    if ((sa & StoreItemLabel.this.action) == 0)
 		    	return false;
 		    
 		    return true;
 		}
 	}
 	
-	InformationPanel(String title, boolean first, boolean second, boolean third, boolean fourth, DataBank theDB)
+	public StoreItemLabel(StorePane theParent)
 	{
-		super(title, first, second, third, fourth);
-		tabs = new JTabbedPane();
-		databank = theDB;
-
+		parent = theParent;
+		
 		dtListener = new DTListener();
 		dropTarget = new DropTarget(this, this.action, dtListener, true);
-		
-		playerPane = new PlayerPane();
-		buffersPane = new BuffersPane();
-		resistPane = new ResistancePane();
-		miscPane = new MiscPane(databank);
-		
-		tabs.addTab("Stats", playerPane);
-		tabs.addTab("Resist.", resistPane);
-		tabs.addTab("Buffers", buffersPane);
-		tabs.addTab("Misc.", miscPane);
-		
-		add(tabs);
 	}
 	
-	public void showMonster(DataBank dataBank, MonsterInstance monster, byte from)
+	public void changeItem(ItemInstance newItem)
 	{
-		miscPane.showMonster(dataBank, monster, from);
-		tabs.setSelectedComponent(miscPane);
-		// TODO refocus on misc pane
+		ItemInstance oldItem = item;
+		item = newItem;
+		parent.itemUpdated(this, oldItem, newItem);
+		updateLabel();
 	}
 	
-	public void showItem(ItemInstance item)
+	public ItemInstance getItem()
 	{
-		miscPane.showItem(item);
-		tabs.setSelectedComponent(miscPane);
-		// TODO refocus on misc pane
+		return item;
 	}
 	
-	public void updatePanes(Player player)
+	public void updateLabel()
 	{
-		playerPane.updatePanel(player, false); // TODO Teams
-		buffersPane.updatePanel(player);
-		resistPane.updatePanel(player);
-		miscPane.updatePanel();
+		if(item != null)
+			setText(item.toString());
+		else
+			setText("");
 	}
 }

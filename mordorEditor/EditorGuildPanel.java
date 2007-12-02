@@ -5,7 +5,7 @@ import javax.swing.JTabbedPane;
 import mordorData.DataBank;
 import mordorData.Guild;
 
-import structures.QuadNode;
+import structures.SkipIter;
 
 
 public class EditorGuildPanel extends JPanel
@@ -21,17 +21,16 @@ public class EditorGuildPanel extends JPanel
 		guildTabs = new JTabbedPane();
 		
 		
-		QuadNode<Guild> tNode = dataBank.getGuilds().firstNode();
+		SkipIter<Guild> tNode = dataBank.getGuilds().getIterator();
 		if(tNode != null)
 		{
 			guildPanes = new EditorGuildPane[dataBank.getGuildCount()];
 			byte count = 0;
-			while(tNode.getRight() != null)
+			while(tNode.next())
 			{
-				guildPanes[count] = new EditorGuildPane(tNode.getElement(), dataBank, this);
-				guildTabs.add(tNode.getElement().getName(), guildPanes[count]);
+				guildPanes[count] = new EditorGuildPane(tNode.element(), dataBank, this);
+				guildTabs.add(tNode.element().getName(), guildPanes[count]);
 				count += 1;
-				tNode = tNode.getRight();
 			}
 		}
 		else
@@ -142,11 +141,11 @@ public class EditorGuildPanel extends JPanel
 	
 	public void updateGuilds()
 	{
-		QuadNode<Guild> tNode = dataBank.getGuilds().firstNode();
+		SkipIter<Guild> tNode = dataBank.getGuilds().getIterator();
 		guildPanes = new EditorGuildPane[dataBank.getGuilds().getSize()];
 		
-		for(int i = 0; i < guildPanes.length; i++, tNode = tNode.getRight())
-			guildPanes[i] = new EditorGuildPane(tNode.getElement(), dataBank, this);
+		for(int i = 0; i < guildPanes.length; i++, tNode.next())
+			guildPanes[i] = new EditorGuildPane(tNode.element(), dataBank, this);
 		
 		updateTabs();
 	}

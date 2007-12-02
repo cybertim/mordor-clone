@@ -4,9 +4,8 @@ import java.io.DataOutputStream;
 
 import mordorHelpers.Util;
 
-
 import structures.LinkedList;
-import structures.ListNode;
+import structures.ListIter;
 
 
 public class BankAccount
@@ -75,22 +74,20 @@ public class BankAccount
 	
 	public String[] getItemNames()
 	{
-		ListNode<ItemInstance> tNode = items.getFirstNode();
+		ListIter<ItemInstance> tNode = items.getIterator();
 		String[] itemNames = new String[items.getSize()];
 		short itemCount = 0;
 		
 		if(items.isEmpty())
 		{
 			itemNames = new String[1];
-			itemNames[0] = "None";
+			itemNames[0] = Util.NOSTRING;
 		}
 		
-		while(tNode != null)
+		while(tNode.next())
 		{
-			itemNames[itemCount] = "Fix getItemNames()";
-			
+			itemNames[itemCount] = tNode.element().getItem().getName();
 			itemCount++;
-			tNode = tNode.getNext();
 		}
 		
 		return itemNames;
@@ -103,13 +100,10 @@ public class BankAccount
 			dos.writeLong(gold);
 			
 			dos.writeInt(items.getSize());
-			ListNode<ItemInstance> tNode = items.getFirstNode();
+			ListIter<ItemInstance> tNode = items.getIterator();
 			
-			while(tNode != null)
-			{
-				tNode.getElement().writeItemInstance(dos);
-				tNode = tNode.getNext();
-			}
+			while(tNode.next())
+				tNode.element().writeItemInstance(dos);
 		}
 		catch(Exception e)
 		{

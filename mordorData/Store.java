@@ -6,8 +6,10 @@ import java.io.EOFException;
 
 import mordorEnums.Alignment;
 import structures.LinkedList;
+import structures.ListIter;
 import structures.ListNode;
 import structures.QuadNode;
+import structures.SkipIter;
 import structures.SkipList;
 
 /**
@@ -32,16 +34,14 @@ public class Store
 	 */
 	public void addStoreItems(SkipList<Item> items)
 	{
-		QuadNode<Item> item = items.firstNode();
+		SkipIter<Item> item = items.getIterator();
 		
-		while(item.getRight() != null)
+		while(item.next())
 		{
 			// If this item is a store item AND it is not already in the list,
 			// add it into the list.
-			if(item.getElement().isStoreItem() && storeInventory.find((int)item.getElement().getID()) == null)
-				storeInventory.insert(new StoreRecord(item.getElement()), (int)item.getElement().getID());
-			
-			item = item.getRight();
+			if(item.element().isStoreItem() && storeInventory.find((int)item.element().getID()) == null)
+				storeInventory.insert(new StoreRecord(item.element()), (int)item.element().getID());
 		}
 	}
 	
@@ -96,17 +96,13 @@ public class Store
 		{
 			dos.writeInt(storeInventory.getSize());
 			
-			QuadNode<StoreRecord> node = storeInventory.firstNode();
+			SkipIter<StoreRecord> node = storeInventory.getIterator();
 			
 			if(node == null)
 				return true;
 			
-			while(node.getRight() != null)
-			{
-				node.getElement().writeStoreRecord(dos);
-				
-				node = node.getRight();
-			}
+			while(node.next())
+				node.element().writeStoreRecord(dos);
 		}
 		catch(Exception e)
 		{
@@ -157,26 +153,20 @@ public class Store
 	 */
 	public void finishLoadingStore(SkipList<Item> items, LinkedList<StoreRecord> storeRecordLoadList)
 	{
-		ListNode<StoreRecord> node = storeRecordLoadList.getFirstNode();
+		ListIter<StoreRecord> node = storeRecordLoadList.getIterator();
 		
-		while(node != null)
+		while(node.next())
 		{
-			Item item = items.find((int)node.getElement().getItemID());
+			Item item = items.find((int)node.element().getItemID());
 			
 			if(item == null)
 			{
 				/* This item no longer exists so get rid of the record. */
-				ListNode<StoreRecord> temp = node;
-				node = node.getNext();
-
-				storeInventory.remove((int)temp.getElement().getItemID());
-				storeRecordLoadList.remove(temp);
+				storeInventory.remove((int)node.element().getItemID());
+				storeRecordLoadList.remove(node.element());
 			}
 			else
-			{
-				node.getElement().setItem(item);
-				node = node.getNext();
-			}
+				node.element().setItem(item);
 		}
 	}
 }

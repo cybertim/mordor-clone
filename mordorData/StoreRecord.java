@@ -165,8 +165,7 @@ public class StoreRecord
 		if(item.isStoreItem())
 			return item.getItemBaseValue();
 		
-		// TODO: Should be 25% markup?
-		return (long)(nextSellCost(align) * 1.25);
+		return (long)(nextSellCost(align) * Util.STORE_SELL_MARKUP);
 	}
 	
 	/**

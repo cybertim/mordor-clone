@@ -14,6 +14,7 @@ import mordorData.Item;
 import mordorHelpers.Util;
 
 import structures.QuadNode;
+import structures.SkipIter;
 
 
 public class EditorItemPanel_GuildsPane extends JPanel implements Scrollable, ActionListener
@@ -37,34 +38,6 @@ public class EditorItemPanel_GuildsPane extends JPanel implements Scrollable, Ac
 		gViewHeight = 150;
 		
 		setupPane();
-		/*
-		guildIDs = new byte[dataBank.getGuildCount()];
-		guildNames = new JCheckBox[dataBank.getGuildCount()];
-		guildLevel = new JTextField[dataBank.getGuildCount()];
-		
-		JPanel checks = new JPanel();
-		JPanel fields = new JPanel();
-		
-		checks.setLayout(new GridLayout(guildIDs.length + 2, 1));
-		fields.setLayout(new GridLayout(guildIDs.length + 2, 1));
-		
-		jbSelectAll = new JCheckBox("Invert");
-		jbSelectAll.setToolTipText("Invert Selection");
-		jbSelectAll.addActionListener(this);
-		checks.add(jbSelectAll);
-		fields.add(new JLabel(""));
-		checks.add(new JLabel("Allow"));
-		fields.add(new JLabel("Lvl"));
-		for(byte i = 0; i < guildIDs.length; i++)
-		{
-			guildNames[i] = new JCheckBox("spam");
-			guildLevel[i] = new JTextField(2);
-			checks.add(guildNames[i]);
-			fields.add(guildLevel[i]);
-		}
-		
-		add(checks);
-		add(fields);*/
 	}
 	
 	private void setupPane()
@@ -108,21 +81,20 @@ public class EditorItemPanel_GuildsPane extends JPanel implements Scrollable, Ac
 	{
 		item = nItem;
 		
-		QuadNode<Guild> tNode = dataBank.getGuilds().firstNode();
+		SkipIter<Guild> tNode = dataBank.getGuilds().getIterator();
 		byte count = 0;
 		
-		while(tNode.getRight() != null)
+		while(tNode.next())
 		{
-			guildIDs[count] = tNode.getElement().getGuildID();
-			guildNames[count].setText(tNode.getElement().getName());
-			guildNames[count].setSelected(item.getGuild(tNode.getElement()) != null);
+			guildIDs[count] = tNode.element().getGuildID();
+			guildNames[count].setText(tNode.element().getName());
+			guildNames[count].setSelected(item.getGuild(tNode.element()) != null);
 			if(guildNames[count].isSelected())
-				guildLevel[count].setText("" + item.getGuild(tNode.getElement()).getLevel());
+				guildLevel[count].setText("" + item.getGuild(tNode.element()).getLevel());
 			else
 				guildLevel[count].setText("0");
 			
 			count++;
-			tNode = tNode.getRight();
 		}
 	}
 	

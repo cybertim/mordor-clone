@@ -10,6 +10,7 @@ import mordorEnums.Trap;
 import mordorHelpers.Util;
 
 import structures.LinkedList;
+import structures.ListIter;
 import structures.ListNode;
 
 
@@ -132,15 +133,14 @@ public class Room
 			names[0] = "None";
 			return names;
 		}
-		ListNode<Player> pNode = playersHere.getFirstNode();
+		ListIter<Player> pNode = playersHere.getIterator();
 		String[] names = new String[playersHere.getSize()];
 		int count = 0;
 		
-		while(pNode != null)
+		while(pNode.next())
 		{
-			names[count] = pNode.getElement().getName();
+			names[count] = pNode.element().getName();
 			count++;
-			pNode = pNode.getNext();
 		}
 		return names;
 	}
@@ -180,21 +180,19 @@ public class Room
 	 */
 	public boolean removeMonsterFromStack(MonsterInstance nMonster)
 	{
-		ListNode<LinkedList<MonsterInstance>> lNode = monsterStacks.getFirstNode();
-		while(lNode != null)
+		ListIter<LinkedList<MonsterInstance>> lNode = monsterStacks.getIterator();
+		while(lNode.next())
 		{
-			ListNode<MonsterInstance> mNode = lNode.getElement().getFirstNode();
+			ListIter<MonsterInstance> mNode = lNode.element().getIterator();
 			
-			while(mNode != null)
+			while(mNode.next())
 			{
-				if(mNode.getElement() == nMonster)
+				if(mNode.element() == nMonster)
 				{
-					lNode.getElement().remove(mNode);
+					lNode.element().remove(mNode.element());
 					return true;
 				}
-				mNode = mNode.getNext();
 			}
-			lNode = lNode.getNext();
 		}
 		
 		return false;
@@ -205,23 +203,16 @@ public class Room
 	 */
 	public void clearDeadMonstersFromStack()
 	{
-		ListNode<LinkedList<MonsterInstance>> lNode = monsterStacks.getFirstNode();
-		ListNode<MonsterInstance> tNode;
-		while(lNode != null)
+		ListIter<LinkedList<MonsterInstance>> lNode = monsterStacks.getIterator();
+		while(lNode.next())
 		{
-			ListNode<MonsterInstance> mNode = lNode.getElement().getFirstNode();
+			ListIter<MonsterInstance> mNode = lNode.element().getIterator();
 			
-			while(mNode != null)
+			while(mNode.next())
 			{
-				if(mNode.getElement().getHits() <= 0)
-				{
-					tNode = mNode;
-					mNode = mNode.getNext();
-					lNode.getElement().remove(tNode);
-				}
-				mNode = mNode.getNext();
+				if(mNode.element().getHits() <= 0)
+					lNode.element().remove(mNode.element());
 			}
-			lNode = lNode.getNext();
 		}
 	}
 	
@@ -232,40 +223,48 @@ public class Room
 	 */
 	public void clearRoom(Room zeroRoom)
 	{
-		ListNode<MapSquare> tNode = squares.getFirstNode();
+		ListIter<MapSquare> tNode = squares.getIterator();
 		
-		while(tNode != null)
+		while(tNode.next())
 		{	
-			MapSquare rSquare = tNode.getElement();
+			MapSquare rSquare = tNode.element();
 			rSquare.setRoom(zeroRoom);
 			zeroRoom.addSquare(rSquare);
-			
-			tNode = tNode.getNext();
 			
 			squares.remove(rSquare);
 		}
 	}
 	
+	/**
+	 * Adds a monsterInstance to a specific stack, if legal.
+	 * Legality: 
+	 * Valid stack (< MON_MAXSTACKSIZE)
+	 * Stack has been populated already.
+	 * Stack isn't full
+	 * Stack contains the same kind of monster
+	 * @param nMonster
+	 * @param stackNumber
+	 * @return true if monster was added.
+	 */
 	public boolean addMonsterToStack(MonsterInstance nMonster, byte stackNumber)
 	{
 		// should also ensure that the type is the same.
 		if(stackNumber < 0 || stackNumber >= Util.MON_MAXSTACKSIZE)
 			return false;
 		
-		ListNode<LinkedList<MonsterInstance>> tNode = monsterStacks.getFirstNode();
+		// Find the stack to add to.
+		ListIter<LinkedList<MonsterInstance>> tNode = monsterStacks.getIterator();
 		byte count = 0;
-		while(tNode != null && count < stackNumber)
-		{
+		while(tNode.next() && count < stackNumber)
 			count++;
-			tNode = tNode.getNext();
-		}
 		
-		if(tNode == null || count < stackNumber)
+		// If there isn't that many stacks, we're done.
+		if(count < stackNumber)
 			return false;
 		
-		if(tNode.getElement().getSize() < Util.MON_MAXSTACKSIZE && tNode.getElement().getFirst().getMonsterID() == nMonster.getMonsterID())
+		if(tNode.element().getSize() < Util.MON_MAXGROUPSIZE && tNode.element().getFirst().getMonsterID() == nMonster.getMonsterID())
 		{
-			tNode.getElement().insert(nMonster);
+			tNode.element().insert(nMonster);
 			return true;
 		}
 		
@@ -309,26 +308,25 @@ public class Room
 	{
 		isStud = newStud;
 		
-		ListNode<MapSquare> tNode = squares.getFirstNode();
-		while(tNode != null)
+		ListIter<MapSquare> tNode = squares.getIterator();
+		while(tNode.next())
 		{
-			if(isStud && !tNode.getElement().isStudSquare())
+			if(isStud && !tNode.element().isStudSquare())
 			{
-				if(tNode.getElement().getSquareFeatures()[0].getType() == SquareFeature.TYPE_NONE)
-					tNode.getElement().getSquareFeatures()[0].setType(SquareFeature.TYPE_STUD);
+				if(tNode.element().getSquareFeatures()[0].getType() == SquareFeature.TYPE_NONE)
+					tNode.element().getSquareFeatures()[0].setType(SquareFeature.TYPE_STUD);
 				else
-					tNode.getElement().getSquareFeatures()[1].setType(SquareFeature.TYPE_STUD);
+					tNode.element().getSquareFeatures()[1].setType(SquareFeature.TYPE_STUD);
 					
 			}
 			else if(!isStud)
 			{
-				if(tNode.getElement().getSquareFeatures()[0].getType() == SquareFeature.TYPE_STUD)
-					tNode.getElement().getSquareFeatures()[0].setType(SquareFeature.TYPE_NONE);
+				if(tNode.element().getSquareFeatures()[0].getType() == SquareFeature.TYPE_STUD)
+					tNode.element().getSquareFeatures()[0].setType(SquareFeature.TYPE_NONE);
 
-				if(tNode.getElement().getSquareFeatures()[1].getType() == SquareFeature.TYPE_STUD)
-					tNode.getElement().getSquareFeatures()[1].setType(SquareFeature.TYPE_NONE);
+				if(tNode.element().getSquareFeatures()[1].getType() == SquareFeature.TYPE_STUD)
+					tNode.element().getSquareFeatures()[1].setType(SquareFeature.TYPE_NONE);
 			}
-			tNode = tNode.getNext();
 		}
 	}
 	
@@ -636,10 +634,10 @@ public class Room
 		LinkedList<ItemInstance> treasureItems = new LinkedList<ItemInstance>();
 		byte maxLevel = (isStud) ? (byte)(level + 1) : level;
 		
-		ListNode<LinkedList<MonsterInstance>> mNode = monsterStacks.getFirstNode();
-		while(mNode != null)
+		ListIter<LinkedList<MonsterInstance>> mNode = monsterStacks.getIterator();
+		while(mNode.next())
 		{
-			Monster monster = mNode.getElement().getFirst().getMonster();
+			Monster monster = mNode.element().getFirst().getMonster();
 			// If the monster has a special item
 			// Roll dice as to if to include it
 			// if so, include it.
@@ -668,10 +666,8 @@ public class Room
 				if(itemTypes[it.value()])
 					types[it.value()] = true;
 			
-			for(int i = mNode.getElement().getSize(); i > 0; i--)
+			for(int i = mNode.element().getSize(); i > 0; i--)
 				gold += start + random.nextInt(range);
-			
-			mNode = mNode.getNext();
 		}
 		
 		// There is a 33 / 2^A chance of generating an item
@@ -713,12 +709,9 @@ public class Room
 	 */
 	public void sayHello()
 	{
-		ListNode<Player> pNode = playersHere.getFirstNode();
-		while(pNode != null)
-		{
-			pNode.getElement().sayHello();
-			pNode = pNode.getNext();
-		}
+		ListIter<Player> pNode = playersHere.getIterator();
+		while(pNode.next())
+			pNode.element().sayHello();
 	}
 	
 	/**
@@ -769,14 +762,13 @@ public class Room
 				dos.writeShort(Util.NOTHING);
 			
 			dos.writeInt(monsterStacks.getSize());
-			ListNode<LinkedList<MonsterInstance>> msNode = monsterStacks.getFirstNode();
-			while(msNode != null)
+			ListIter<LinkedList<MonsterInstance>> msNode = monsterStacks.getIterator();
+			while(msNode.next())
 			{
-				int sSize = msNode.getElement().getSize();
+				int sSize = msNode.element().getSize();
 				dos.writeInt(sSize);
 				if(sSize > 0)
-					dos.writeShort(msNode.getElement().getFirst().getMonsterID());
-				msNode = msNode.getNext();
+					dos.writeShort(msNode.element().getFirst().getMonsterID());
 			}
 			
 			// Write the monster item(s);
@@ -785,12 +777,9 @@ public class Room
 			else
 			{
 				dos.writeInt(monsterItems.getSize());
-				ListNode<ItemInstance> tMonItems = monsterItems.getFirstNode();
-				while(tMonItems != null)
-				{
-					tMonItems.getElement().writeItemInstance(dos);
-					tMonItems = tMonItems.getNext();
-				}
+				ListIter<ItemInstance> tMonItems = monsterItems.getIterator();
+				while(tMonItems.next())
+					tMonItems.element().writeItemInstance(dos);
 			}
 			
 			// Write monster gold
