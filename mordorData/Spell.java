@@ -8,16 +8,10 @@ import mordorEnums.SpellType;
 import mordorEnums.Stats;
 import mordorHelpers.Util;
 
-public class Spell 
+public class Spell extends MObject<SpellType>
 {
-	private String name;
-	private String description;
 	private String effectName; // e.g. dazzeled
-	private short spellID;
-	private SpellType spellType;
-	private byte stats[];
 	private byte strength, numGroups, subtype;
-	private short baseLevel;
 	/*
 	 * strength: How many monsters it can affect (by group) or change to resistance.
 	 * numGroups: How many groups of targets it can affect.
@@ -40,58 +34,19 @@ public class Spell
 	
 	Spell(String newName, short newID)
 	{
-		name = newName;
-		spellID = newID;
-		stats = new byte[Stats.values().length];
-		description = "";
-		effectName = "";
-		spellType = SpellType.Damage;
+		super(newID);
 		
-		for(Stats st : Stats.values())
-			stats[st.value()] = (byte)0;
-		baseLevel = numGroups = strength = 1;
+		name = newName;
+		effectName = "";
+		type = SpellType.Damage;
+		
+		level = numGroups = strength = 1;
 		subtype = 0;
-	}
-	
-	public String getName()
-	{
-		return name;
-	}
-	
-	public String getDescription()
-	{
-		return description;
 	}
 	
 	public String getEffectString()
 	{
 		return effectName;
-	}
-	
-	public short getID()
-	{
-		return spellID;
-	}
-	
-	/**
-	 * Retrieves the type of spell this is. See SpellType for the types
-	 * Note: Classes != Type. Type is the kind of effect it has (does it
-	 * heal? kill?). Class is groupings for the user.
-	 * @return
-	 */
-	public SpellType getSpellType()
-	{
-		return spellType;
-	}
-	
-	/**
-	 * Retrieve the stat requirement for a stat.
-	 * @param statsType
-	 * @return
-	 */
-	public byte getStats(Stats statsType)
-	{
-		return stats[statsType.value()];
 	}
 	
 	/**
@@ -101,15 +56,6 @@ public class Spell
 	public byte getNumberGroupsAffect()
 	{
 		return numGroups;
-	}
-	
-	/**
-	 * Retrieves the base casting level for this spell.
-	 * @return
-	 */
-	public short getBaseLevel()
-	{
-		return baseLevel;
 	}
 	
 	/**
@@ -133,52 +79,9 @@ public class Spell
 		return subtype;
 	}
 	
-	public void setName(String newName)
-	{
-		name = newName;
-	}
-	
-	public void setDescription(String newDescription)
-	{
-		description = newDescription;
-	}
-	
 	public void setEffectString(String newEffectName)
 	{
 		effectName = newEffectName;
-	}
-	
-	public void setID(short newID)
-	{
-		spellID = newID;
-	}
-	
-	/**
-	 * Sets the type of spell this is.
-	 * @param newSpellType
-	 */
-	public void setSpellType(SpellType newSpellType)
-	{
-		spellType = newSpellType;
-	}
-	
-	/**
-	 * Sets the stat requirement for a stat
-	 * @param statsType
-	 * @param statsValue
-	 */
-	public void setStats(Stats statsType, byte statsValue)
-	{
-		stats[statsType.value()] = Util.FITBYTE(statsValue, Stats.MINIMUMVALUE, Stats.MAXIMUMVALUE);
-	}
-	
-	/**
-	 * Sets the base casting level for this spell.
-	 * @param newBaseLevel
-	 */
-	public void setBaseLevel(short newBaseLevel)
-	{
-		baseLevel = newBaseLevel;
 	}
 	
 	/**
@@ -248,11 +151,11 @@ public class Spell
 	{
 		try
 		{
-			dos.writeShort(spellID);
-			dos.writeByte(spellType.value());
+			dos.writeShort(ID);
+			dos.writeByte(type.value());
 			dos.writeByte(strength);
 			dos.writeByte(numGroups);
-			dos.writeShort(baseLevel);
+			dos.writeShort(level);
 			dos.writeByte(subtype);
 			for(byte i = 0; i < stats.length; i++)
 				dos.writeByte(stats[i]);
@@ -277,16 +180,16 @@ public class Spell
 		
 		try
 		{
-			spell.setID(dis.readShort());
-			spell.setSpellType(SpellType.type(dis.readByte()));
+			spell.ID = dis.readShort();
+			spell.type = SpellType.type(dis.readByte());
 			spell.setSpellStrength(dis.readByte());
 			spell.setNumberGroups(dis.readByte());
 			
-			spell.setBaseLevel(dis.readShort());
+			spell.level = dis.readShort();
 			spell.setSubType(dis.readByte());
 			for(Stats st : Stats.values())
-				spell.setStats(st, dis.readByte());
-			spell.setName(dis.readUTF());
+				spell.stats[st.value()] = dis.readByte();
+			spell.name = dis.readUTF();
 			spell.setEffectString(dis.readUTF());
 			spell.setDescription(dis.readUTF());
 		}
@@ -300,5 +203,12 @@ public class Spell
 		}
 		
 		return spell;
+	}
+
+	@Override
+	public String generateDescription(boolean html)
+	{
+		// TODO Auto-generated method stub
+		return description;
 	}
 }

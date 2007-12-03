@@ -13,13 +13,10 @@ import mordorData.GuildReference;
 import mordorData.Item;
 import mordorHelpers.Util;
 
-import structures.QuadNode;
 import structures.SkipIter;
-
 
 public class EditorItemPanel_GuildsPane extends JPanel implements Scrollable, ActionListener
 {
-	private EditorItemPanel parent;
 	private Item item;
 	private DataBank dataBank;
 	private byte[] guildIDs;
@@ -30,9 +27,8 @@ public class EditorItemPanel_GuildsPane extends JPanel implements Scrollable, Ac
 	
 	private short gViewWidth, gViewHeight;
 	
-	EditorItemPanel_GuildsPane(Item nItem, EditorItemPanel nParent, DataBank nDataBank)
+	EditorItemPanel_GuildsPane(Item nItem, DataBank nDataBank)
 	{
-		parent = nParent;
 		dataBank = nDataBank;
 		gViewWidth = 250;
 		gViewHeight = 150;
@@ -86,7 +82,7 @@ public class EditorItemPanel_GuildsPane extends JPanel implements Scrollable, Ac
 		
 		while(tNode.next())
 		{
-			guildIDs[count] = tNode.element().getGuildID();
+			guildIDs[count] = (byte)tNode.element().getID();
 			guildNames[count].setText(tNode.element().getName());
 			guildNames[count].setSelected(item.getGuild(tNode.element()) != null);
 			if(guildNames[count].isSelected())

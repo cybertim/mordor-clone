@@ -31,7 +31,6 @@ import mordorHelpers.Util;
 import structures.ListIter;
 import structures.ListNode;
 
-
 public class EditorGuildPane extends JPanel implements ActionListener, ListDataListener, ItemListener 
 {
 	private Guild guild;
@@ -452,7 +451,7 @@ public class EditorGuildPane extends JPanel implements ActionListener, ListDataL
 		guildSpellList.setModel(guildSpellLModel);
 		
 		for(byte i = 0; i < tfRequiredStats.length; i++)
-			tfRequiredStats[i].setText("" + guild.getStatRequired(Stats.type(i)));
+			tfRequiredStats[i].setText("" + guild.getStat(Stats.type(i)));
 		for(GuildSkill gs : GuildSkill.values())
 			tfSkills[gs.value()].setText("" + guild.getSkillFactor(gs));
 		
@@ -462,9 +461,9 @@ public class EditorGuildPane extends JPanel implements ActionListener, ListDataL
 		tfEP.setText("" + guild.getEP());
 		tfQP.setText("" + guild.getQP());
 		
-		tfMaxAttack.setText("" + guild.getMaxAttack());
-		tfMaxDefense.setText("" + guild.getMaxDefense());
-		tfMaxLevelAD.setText("" + guild.getMaxLevelAD());
+		tfMaxAttack.setText("" + guild.getAttack());
+		tfMaxDefense.setText("" + guild.getDefense());
+		tfMaxLevelAD.setText("" + guild.getLevel());
 		tfJoinCost.setText("" + guild.getJoinCost());
 		tfGuildGoldFactor.setText("" + guild.getGGF());
 		
@@ -542,7 +541,7 @@ public class EditorGuildPane extends JPanel implements ActionListener, ListDataL
 		// so parses are safe
 		
 		for(byte i = 0; i < tfRequiredStats.length; i++)
-			guild.setRequiredStats(Stats.type(i), Byte.parseByte(tfRequiredStats[i].getText().trim()));
+			guild.setStat(Stats.type(i), Byte.parseByte(tfRequiredStats[i].getText().trim()));
 		for(GuildSkill gs : GuildSkill.values())
 			guild.setSkillFactor(gs, Float.parseFloat(tfSkills[gs.value()].getText().trim()));
 		
@@ -552,9 +551,9 @@ public class EditorGuildPane extends JPanel implements ActionListener, ListDataL
 		guild.setEP(Byte.parseByte(tfEP.getText().trim()));
 		guild.setQP(Byte.parseByte(tfQP.getText().trim()));
 		
-		guild.setMaxAttack(Short.parseShort(tfMaxAttack.getText().trim()));
-		guild.setMaxDefense(Short.parseShort(tfMaxDefense.getText().trim()));
-		guild.setMaxLevelAD(Short.parseShort(tfMaxLevelAD.getText().trim()));
+		guild.setAttack(Short.parseShort(tfMaxAttack.getText().trim()));
+		guild.setDefense(Short.parseShort(tfMaxDefense.getText().trim()));
+		guild.setLevel(Short.parseShort(tfMaxLevelAD.getText().trim()));
 		guild.setJoinCost(Long.parseLong(tfJoinCost.getText().trim()));
 		guild.setGuildGoldFactor(Byte.parseByte(tfGuildGoldFactor.getText().trim()));
 		
@@ -762,7 +761,7 @@ public class EditorGuildPane extends JPanel implements ActionListener, ListDataL
 				if(newGuildMaster != null)
 				{
 					// Get the level from here, retrieve it from its guilds
-					GuildRecord tGuild = newGuildMaster.getGuildRecord(guild.getGuildID());
+					GuildRecord tGuild = newGuildMaster.getGuildRecord((byte)guild.getID());
 					if(tGuild == null)
 					{
 						JOptionPane.showMessageDialog(this, "Player not a member of this guild.");

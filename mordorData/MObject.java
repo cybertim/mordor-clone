@@ -1,32 +1,36 @@
 package mordorData;
 
-import mordorEnums.Alignment;
 import mordorEnums.Stats;
 import mordorHelpers.Util;
 
 public abstract class MObject<TYPE>
 {
-	protected String mName;
-	protected short mID;
-	protected TYPE mType; // RACE in players, MonsterClass in monsters
-	protected byte mStats[];
-	protected short mLevel; // convert to byte for item/monster, useless in player?
-	protected short mAttack, mDefense; // Unused in spells, usurp in player.
+	protected String name;
+	protected short ID;
+	protected TYPE type; // RACE in players, MonsterClass in monsters
+	protected byte stats[];
+	protected short level; // convert to byte for item/monster, useless in player?
+	protected short attack, defense; // Unused in spells, usurp in player.
+	protected String description;
 	
 	MObject(short nID)
 	{
-		mName = Util.NOSTRING;
-		mID = nID;
-		mType = null;
-		mStats = new byte[Stats.values().length];
-		mLevel = Util.NOTHING;
-		mAttack = 0;
-		mDefense = 0;
+		name = Util.NOSTRING;
+		description = "";
+		ID = nID;
+		type = null;
+		stats = new byte[Stats.values().length];
+		for(Stats st : Stats.values())
+			stats[st.value()] = 0;
+		
+		level = Util.NOTHING;
+		attack = 0;
+		defense = 0;
 	}
 	
 	public String toString()
 	{
-		return mName;
+		return name;
 	}
 	
 	/**
@@ -35,8 +39,24 @@ public abstract class MObject<TYPE>
 	 */
 	public String getName()
 	{
-		return mName;
+		return name;
 	}
+	
+	/**
+	 * Retrieve the description.
+	 * @return	String
+	 */
+	public String getDescription()
+	{
+		return description;
+	}
+	
+	/**
+	 * Generate a description.
+	 * @param html If true, generate an HTML formated description.
+	 * @return	String
+	 */
+	public abstract String generateDescription(boolean html);
 	
 	/**
 	 * Retrieve ID
@@ -44,7 +64,7 @@ public abstract class MObject<TYPE>
 	 */
 	public short getID()
 	{
-		return mID;
+		return ID;
 	}
 	
 	/**
@@ -53,7 +73,7 @@ public abstract class MObject<TYPE>
 	 */
 	public TYPE getType()
 	{
-		return mType;
+		return type;
 	}
 	
 	/**
@@ -63,7 +83,7 @@ public abstract class MObject<TYPE>
 	 */
 	public byte getStat(Stats st)
 	{
-		return mStats[st.value()];
+		return stats[st.value()];
 	}
 	
 	/**
@@ -72,7 +92,7 @@ public abstract class MObject<TYPE>
 	 */
 	public short getLevel()
 	{
-		return mLevel;
+		return level;
 	}
 	
 	/**
@@ -81,7 +101,7 @@ public abstract class MObject<TYPE>
 	 */
 	public short getAttack()
 	{
-		return mAttack;
+		return attack;
 	}
 	
 	/**
@@ -90,7 +110,7 @@ public abstract class MObject<TYPE>
 	 */
 	public short getDefense()
 	{
-		return mDefense;
+		return defense;
 	}
 	
 	/**
@@ -100,9 +120,18 @@ public abstract class MObject<TYPE>
 	public void setName(String nName)
 	{
 		if(nName != null)
-			mName = nName;
+			name = nName;
 		else
-			mName = Util.NOSTRING;
+			name = Util.NOSTRING;
+	}
+	
+	/**
+	 * Set the description.
+	 * @param nDescription
+	 */
+	public void setDescription(String nDescription)
+	{
+		description = nDescription;
 	}
 	
 	/**
@@ -111,7 +140,7 @@ public abstract class MObject<TYPE>
 	 */
 	public void setID(short nID)
 	{
-		mID = nID;
+		ID = nID;
 	}
 	
 	/**
@@ -121,7 +150,7 @@ public abstract class MObject<TYPE>
 	public void setType(TYPE nType)
 	{
 		if(nType != null)
-			mType = nType;
+			type = nType;
 	}
 	
 	/**
@@ -131,7 +160,7 @@ public abstract class MObject<TYPE>
 	 */
 	public void setStat(Stats st, byte newVal)
 	{
-		mStats[st.value()] = newVal;
+		stats[st.value()] = newVal;
 	}
 	
 	/**
@@ -140,7 +169,7 @@ public abstract class MObject<TYPE>
 	 */
 	public void setLevel(short nLevel)
 	{
-		mLevel = nLevel;
+		level = nLevel;
 	}
 	
 	/**
@@ -149,7 +178,7 @@ public abstract class MObject<TYPE>
 	 */
 	public void setAttack(short nAttack)
 	{
-		mAttack = nAttack;
+		attack = nAttack;
 	}
 	
 	/**
@@ -158,6 +187,6 @@ public abstract class MObject<TYPE>
 	 */
 	public void setDefense(short nDefense)
 	{
-		mDefense = nDefense;
+		defense = nDefense;
 	}
 }

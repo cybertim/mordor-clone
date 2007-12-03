@@ -5,8 +5,6 @@ import mordorEnums.MonsterClass;
 import mordorHelpers.Util;
 import structures.LinkedList;
 import structures.ListIter;
-import structures.ListNode;
-import structures.QuadNode;
 import structures.SkipIter;
 import structures.SkipList;
 
@@ -39,8 +37,8 @@ public class MonsterEden
 		byte maxLevel = Util.NOTHING;
 		
 		while(mNode.next())
-			if(mNode.element().getMinMapLevel() > maxLevel)
-				maxLevel = mNode.element().getMinMapLevel();
+			if(mNode.element().getLevel() > maxLevel)
+				maxLevel = (byte)mNode.element().getLevel();
 		
 		return maxLevel;
 	}
@@ -55,7 +53,7 @@ public class MonsterEden
 		SkipIter<Monster> mNode = monsters.getIterator();
 		
 		while(mNode.next())
-			levelList.insert(mNode.element(), (int)mNode.element().getMinMapLevel());
+			levelList.insert(mNode.element(), (int)mNode.element().getLevel());
 		
 		return levelList;
 	}
@@ -89,9 +87,9 @@ public class MonsterEden
 			
 			// If we have moved to a new level, also set the start key for
 			// the new level to the same key
-			if(currentLevel < mNode.element().getMinMapLevel())
+			if(currentLevel < mNode.element().getLevel())
 			{
-				currentLevel = mNode.element().getMinMapLevel();
+				currentLevel = mNode.element().getLevel();
 				levelKeys[currentLevel] = currentKey;
 			}
 			
@@ -122,7 +120,7 @@ public class MonsterEden
 			monster = monstersByCOA.findEarly(random.nextInt(levelKeys[level + 1]));
 			
 			// If we can choose any monster class, or this is a monsterclass we want, we are done.
-			if(monsterClasses == null || monsterClasses[monster.getMonsterClass().value()])
+			if(monsterClasses == null || monsterClasses[monster.getType().value()])
 				break;
 			
 			// Otherwise, try again. Increment count since we have done a loop.
@@ -132,111 +130,6 @@ public class MonsterEden
 		
 		return monster;
 	}
-	
-	/**
-	 * Update the availableMonsters list.
-	 * @param maxLevel	Level to update to.
-	 */
-/*	public void updateAvailableMonsters(byte maxLevel)
-	{
-		if(maxLevel == availableLevel)
-			return;
-		
-		availableMonsters = new SkipList<Monster>();
-		studMonsters = new SkipList<Monster>();
-		
-		availableLevel = maxLevel;
-		maxAvailKey = getAvailMonByClass(availableMonsters, null, false, 0, maxLevel);
-		maxStudKey = getAvailMonByClass(studMonsters, null, false,  maxLevel + 1, maxLevel + 1);
-		maxAquaKey = getAvailMonByClass(aquaticMonsters, null, true, 0, maxLevel);
-	}*/
-	
-	/**
-	 * Get available monsters, organized by COA. If MonsterClass isn't null then
-	 * it will only add monsters of the type specified. Will also only add monsters
-	 * who have a minimum level to appear at equivalent less than or equal to maxLevel.
-	 * Will not include monsters with a COA == 0. These are laired monsters or other
-	 * ones that can't be "chosen" to appear.
-	 * minLevel is primarily useful for stud squares.
-	 * 
-	 * @param monList	SkipList<Monster>	List to put monsters into. Well be cleared!
-	 * @param mc	MonsterClass	If null, then all monsters
-	 * @param minLevel	int		Minimum minLevel of a monster allowed
-	 * @param maxLevel	int		Maximum minLevel of a monster allowed
-	 * @param
-	 * @return
-	 */
-/*	public int getAvailMonByClass(SkipList<Monster> monList, MonsterClass mc, boolean aquatic, int minLevel, int maxLevel)
-	{
-		// First, find out how many of each value exist.
-		int totCOAcount[] = new int[MAXCOAVALUE + 1];
-		int sumCOAcount[] = new int[MAXCOAVALUE + 1];
-		int curCOAcount[] = new int[MAXCOAVALUE + 1];
-		
-		QuadNode<Monster> mNode = monsters.firstNode();
-		
-		// First, get how many monsters have each COA
-		while(mNode.getRight() != null)
-		{
-			if(mNode.getElement().getMinMapLevel() >= minLevel && mNode.getElement().getMinMapLevel() <= maxLevel && (mc == null || mNode.getElement().getMonsterClass() == mc) && mNode.getElement().getChanceOfAppearance() != 0)
-			{
-				if((!aquatic && !mNode.getElement().isAquatic()) || (aquatic && mNode.getElement().isAquatic()))
-					totCOAcount[Util.FITBYTE(mNode.getElement().getChanceOfAppearance(), 0, MAXCOAVALUE)]++;
-			}
-
-			mNode = mNode.getRight();
-		}
-		
-		// Second, get the sum of the COAs up to each level
-		sumCOAcount[0] = 0;
-		sumCOAcount[1] = totCOAcount[0];
-		for(int i = 2; i < sumCOAcount.length; i++)
-			sumCOAcount[i] = sumCOAcount[i - 1] + (totCOAcount[i - 1] * (i - 1));
-		
-		// Clear the list.
-		if(monList.getSize() != 0)
-			monList.clearList();
-
-		// Now generate the new keys
-		mNode = monsters.firstNode();
-		while(mNode.getRight() != null)
-		{
-			if(mNode.getElement().getMinMapLevel() >= minLevel && mNode.getElement().getMinMapLevel() <= maxLevel && (mc == null || mNode.getElement().getMonsterClass() == mc) && mNode.getElement().getChanceOfAppearance() != 0)
-			{
-				if((!aquatic && !mNode.getElement().isAquatic()) || (aquatic && mNode.getElement().isAquatic()))
-				{
-					byte COA = Util.FITBYTE(mNode.getElement().getChanceOfAppearance(), 0, MAXCOAVALUE);
-					// Its key is the sum of all COA's before it.
-					Integer nKey = sumCOAcount[COA] + (curCOAcount[COA] * COA);
-			
-					monList.insert(mNode.getElement(), nKey);
-			
-					curCOAcount[COA]++;
-				}
-			}
-			
-			mNode = mNode.getRight();
-		}
-		
-		// Return the maximum possible value. That is, the key of the last node in the list + its COA 
-		return monList.lastNode().getKey() + monList.lastNode().getElement().getChanceOfAppearance();
-	}*/
-	
-	/**
-	 * Retrieves a random monster of those in the available list.
-	 * @return	Monster
-	 */
-/*	public Monster getRandomMonster(boolean getStud, boolean getAquatic)
-	{
-		Random random = new Random(System.currentTimeMillis());
-		
-		if(getStud)
-			return studMonsters.findEarly(random.nextInt(maxStudKey));
-		else if(getAquatic)
-			return aquaticMonsters.findEarly(random.nextInt(maxAquaKey));
-		
-		return availableMonsters.findEarly(random.nextInt(maxAvailKey));
-	}*/
 	
 	/**
 	 * Retrieves a random monster of any type. The first use is for
@@ -288,7 +181,7 @@ public class MonsterEden
 			return null;
 		
 		while(tNode.next())
-			if(tNode.element().getMonsterClass() == monsterClass)
+			if(tNode.element().getType() == monsterClass)
 				monsterList.insert(tNode.element(), tNode.key());
 		
 		return monsterList;
@@ -368,7 +261,7 @@ public class MonsterEden
 		
 		while(tMon.next())
 		{
-			if(tMon.element().getMinMapLevel() <= maximumLevel)
+			if(tMon.element().getLevel() <= maximumLevel)
 			{
 				if(weighted)
 					// TODO, this should be using a random number between high & low bound
@@ -390,24 +283,10 @@ public class MonsterEden
 		return true;
 	}
 	
-/*	public boolean addLairedMonster(Monster newMonster)
-	{
-		if(lairedMonsters.find((int)newMonster.getID()) != null)
-			return false;
-		
-		lairedMonsters.insert(newMonster, (int)newMonster.getID());
-		return true;
-	}
-	
-	public void removeLairedMonster(Monster oldMonster)
-	{
-		lairedMonsters.remove((int)oldMonster.getID());
-	}*/
-	
 	public Monster newMonster()
 	{
 		short newID = getFirstID();
-		if(newID == -1)
+		if(newID == Util.NOTHING)
 			return null;
 		
 		Monster newMonster = new Monster(newID);
@@ -419,22 +298,20 @@ public class MonsterEden
 	public Monster newMonster(MonsterClass monType)
 	{
 		short newID = getFirstID();
-		if(newID == -1)
+		if(newID == Util.NOTHING)
 			return null;
 		
 		Monster newMonster = new Monster(newID);
 		
 		monsters.insert(newMonster, (int)newID);
 		
-		newMonster.setMonsterClass(monType);
+		newMonster.setType(monType);
 		newMonster.setName(Util.NOSTRING + monType);
 		return newMonster;
 	}
 	
 	public Monster removeMonster(short monsterID)
 	{
-//		if(lairedMonsters.getSize() > 0)
-	//		lairedMonsters.remove((int)monsterID);
 		return monsters.remove((int)monsterID);
 	}
 	
@@ -443,10 +320,7 @@ public class MonsterEden
 		Monster tMonster = getMonster(monsterName);
 		
 		if(tMonster != null)
-	//	{
-		//	lairedMonsters.remove((int)tMonster.getID());
 			return monsters.remove((int)tMonster.getID());
-		//}
 		
 		return null;
 	}
@@ -489,6 +363,6 @@ public class MonsterEden
 			lastKey = (short)(tNode.key() + 1);
 		}
 		
-		return -1;
+		return (tNode.key() < Short.MAX_VALUE) ? (short)(tNode.key() + 1) : Util.NOTHING;
 	}
 }

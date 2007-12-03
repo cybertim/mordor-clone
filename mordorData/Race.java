@@ -3,9 +3,7 @@ package mordorData;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
-import structures.ListNode;
 import mordorEnums.Alignment;
-import mordorEnums.ItemTypes;
 import mordorEnums.Resistance;
 import mordorEnums.Size;
 import mordorEnums.Stats;
@@ -103,7 +101,7 @@ public class Race
 	}
 	
 	/**
-	 * Retrieve the double value for this rates experience rate.
+	 * Retrieve the double value for this races experience rate.
 	 * Used for internal calculations.
 	 * @return
 	 */

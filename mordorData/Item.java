@@ -9,37 +9,25 @@ import mordorEnums.ItemTypes;
 import mordorEnums.PlayerState;
 import mordorEnums.Resistance;
 import mordorEnums.Stats;
-import mordorHelpers.Util;
-
 
 import structures.LinkedList;
 import structures.ListIter;
-import structures.ListNode;
 
-
-public class Item
+public class Item extends MObject<ItemTypes>
 {
 //	This is for saving. This should be ID based on item type, NOT
 //	incidence. e.g. all bronze swords give this value
-	private short itemID;
-	private String name, description;
-	private byte mapLevel, chance, swings;
-	private byte[][] stats;
+	private byte chance, swings;
+	private byte[] modifyStats;
 	private ItemTypes itemType;
 	private boolean[] alignment;
 	private boolean unaligned;
 	private boolean cursed;
-	private short attack, defense;
 	private boolean twoHanded;
 	private float damageModifier;
 	private LinkedList<GuildReference> guilds;
 	private ItemSpecials specials[];
 	private long itemValue;
-	
-	// in y dimension, first is the special type, second is the special value
-	
-	public static final byte STATS_REQUIRED = 0;
-	public static final byte STATS_MODIFY = 1;
 
 	public static final byte ITEMSPECIAL_MAX = 16;
 	public static final byte ITEMSPECIAL_MAXSPELLS = 1;
@@ -57,33 +45,23 @@ public class Item
 	// since guild swings are earned.
 	public static final byte MAXITEMSWINGS = 32;
 	
-	private static final byte STATREQUIREMENT = 0;
-	private static final byte STATADJUSTMENT = 1;
-	
 	
 	Item(short newID)
 	{
-		itemID =  newID;
-		
-		name = Util.NOSTRING;
-		description = "";
-		mapLevel = -1;
+		super(newID);
+
+		level = -1;
 		chance = 100;
 		itemType = ItemTypes.Hands;
 		cursed = false;
-		attack = 0;
-		defense = 0;
 		swings = 0;
 		twoHanded = false;
 		damageModifier = 1.0f;
 		itemValue = 125;
 		
-		stats = new byte[2][Stats.values().length];
+		modifyStats = new byte[Stats.values().length];
 		for(byte i = 0; i < Stats.values().length; i++)
-		{
-			stats[STATREQUIREMENT][i] = (byte)0;
-			stats[STATADJUSTMENT][i] = (byte)0;
-		}
+			modifyStats[i] = (byte)0;
 
 		alignment = new boolean[Alignment.values().length];
 		for(Alignment al : Alignment.values())
@@ -96,24 +74,7 @@ public class Item
 		specials = new ItemSpecials[ITEMSPECIAL_MAX];
 		
 		for(int i = 0; i < ITEMSPECIAL_MAX; i++)
-		{
 			specials[i] = new ItemSpecials(ItemSpecials.ITEMSPECIAL_NONE, (short)0, (short)0, (short)0);
-		}
-	}
-	
-	/**
-	 * This is for saving. This should be ID based on item type, NOT
-	 * incidence. e.g. all bronze swords give this value
-	 * @return
-	 */
-	public short getID()
-	{
-		return itemID;
-	}
-	
-	public String getName()
-	{
-		return name;
 	}
 	
 	/**
@@ -121,14 +82,16 @@ public class Item
 	 * @param dataBank
 	 * @return
 	 */
-	public String generateDescription(DataBank dataBank)
+	public String generateDescription(DataBank dataBank, boolean html)
 	{
-		String desc;
+		String eol = (html) ? "<BR>" : "\n";
+		String desc = (html) ? "<HTML>" : "";
 		
-		desc = "<HTML>This item is a member of the " + itemType.toString() + " class.<BR><BR>";
+		desc += "This item is a member of the " + itemType.toString() + " class." + eol + eol;
 		desc += "Offering an A/D of " + attack + "/" + defense + " to a properly aligned character, ";
 		BodyParts bp = itemType.getEquippingPart();
-		desc += (bp != BodyParts.Hands) ? " this item requires no hands.<BR><BR>" : (twoHanded) ? " this item requires two hands.<BR><BR>" : " this item requires on hand.<BR><BR>"; 
+		desc += (bp != BodyParts.Weapon) ? " this item requires no hands." : (twoHanded) ? " this item requires two hands." : " this item requires one hand.";
+		desc += eol + eol;
 		desc += "This item also offers the following when equipped: ";
 		int count = 0;
 		for(byte i = 0; i < specials.length; i++)
@@ -139,49 +102,37 @@ public class Item
 				count++;
 			}
 		}
-		desc += (count == 0) ? "nothing.<BR><BR>" : "<BR><BR>";
+		desc += (count == 0) ? "nothing." : "";
+		desc += eol + eol;
 		
 		desc += "Requiring";
 		count = 0;
-		for(byte i = 0; i < stats[STATREQUIREMENT].length; i++)
-			if(stats[STATREQUIREMENT][i] != 0)
+		for(byte i = 0; i < stats.length; i++)
+			if(stats[i] != 0)
 			{
-				desc += " " + stats[STATREQUIREMENT][i] + Stats.type(i).toString();
+				desc += " " + stats[i] + Stats.type(i).toString();
 				count++;
 			}
 		if(count == 0)
 			desc += " nothing";
-		desc += "to equip or use, this is a non-Class Restricted Item that is usable by the following Guilds: ";
+		desc += " to equip or use, this is a non-Class Restricted Item that is usable by the following Guilds: ";
 		
 		ListIter<GuildReference> tGuild = guilds.getIterator();
-		//ListNode<GuildReference> tGuild = guilds.getFirstNode();
 		count = 0;
 		
-		//while(tGuild != null)
 		while(tGuild.next())
 		{
 			if(count != 0)
 				desc += ", ";
 			desc += tGuild.element().getGuild().getName() + " (" + tGuild.element().getLevel() + ")";
 			count++;
-			//tGuild = tGuild.getNext();
 		}
 		
 		if(count == 0)
 			desc += "none";
-		desc += ".</HTML>";
+		desc += (html) ? ".</HTML>" : ".";
 		
 		return desc;
-	}
-	
-	public String getDescription()
-	{
-		return description;
-	}
-	
-	public byte getMinimumLevel()
-	{
-		return mapLevel;
 	}
 	
 	public byte getSwings()
@@ -195,23 +146,13 @@ public class Item
 	}
 	
 	/**
-	 * Retrieve the stat requirement for a stat
-	 * @param statType
-	 * @return
-	 */
-	public byte getStatRequirement(Stats statType)
-	{
-		return stats[STATREQUIREMENT][statType.value()];
-	}
-	
-	/**
 	 * Retrieve the stat adjustment for a stat
 	 * @param statType
 	 * @return
 	 */
 	public byte getStatAdjustment(Stats statType)
 	{
-		return stats[STATADJUSTMENT][statType.value()];
+		return modifyStats[statType.value()];
 	}
 	
 	/**
@@ -249,7 +190,7 @@ public class Item
 	 */
 	public boolean isStoreItem()
 	{
-		return (getMinimumLevel() == STOREITEM);
+		return (level == STOREITEM);
 	}
 	
 	/**
@@ -426,26 +367,6 @@ public class Item
 		return (chance < MAXCHANCE_RARE);
 	}
 	
-	public void setItemID(short newID)
-	{
-		itemID = newID;
-	}
-	
-	public void setName(String newName)
-	{
-		name = newName;
-	}
-	
-	public void setDescription(String newDescription)
-	{
-		description = newDescription;
-	}
-	
-	public void setMinimumLevel(byte newMinLevel)
-	{
-		mapLevel = newMinLevel;
-	}
-	
 	public void setChance(byte newChance)
 	{
 		if(newChance < 0)
@@ -457,23 +378,13 @@ public class Item
 	}
 	
 	/**
-	 * Sets the stat requirement for a stat.
-	 * @param statType
-	 * @param newStatValue
-	 */
-	public void setStatsRequirement(Stats statType, byte newStatValue)
-	{
-		stats[STATREQUIREMENT][statType.value()] = newStatValue;
-	}
-	
-	/**
 	 * Set the stat adjustment made for a stat
 	 * @param statType
 	 * @param newStatValue
 	 */
 	public void setStatsAdjustment(Stats statType, byte newStatValue)
 	{
-		stats[STATADJUSTMENT][statType.value()] = newStatValue;
+		modifyStats[statType.value()] = newStatValue;
 	}
 	
 	public void setItemType(ItemTypes nItemType)
@@ -573,7 +484,7 @@ public class Item
 	{
 		try
 		{
-			dos.writeShort(itemID);
+			dos.writeShort(ID);
 			
 			dos.writeBoolean(alignment[Alignment.Good.value()]);
 			dos.writeBoolean(alignment[Alignment.Neutral.value()]);
@@ -582,7 +493,7 @@ public class Item
 			dos.writeBoolean(twoHanded);
 			dos.writeBoolean(unaligned);
 			
-			dos.writeByte(mapLevel);
+			dos.writeByte(level);
 			dos.writeByte(chance);
 			dos.writeByte(itemType.value());
 			
@@ -590,8 +501,8 @@ public class Item
 			
 			for(int i = 0; i < Stats.values().length; i++)
 			{
-				dos.writeByte(stats[STATREQUIREMENT][i]);
-				dos.writeByte(stats[STATADJUSTMENT][i]);
+				dos.writeByte(stats[i]);
+				dos.writeByte(modifyStats[i]);
 			}
 			
 			dos.writeShort(attack);
@@ -615,7 +526,7 @@ public class Item
 				
 				while(tNode.next())
 				{
-					dos.writeByte(tNode.element().getGuild().getGuildID());
+					dos.writeByte(tNode.element().getGuild().getID());
 					dos.writeShort(tNode.element().getLevel());
 				}
 			}
@@ -647,7 +558,7 @@ public class Item
 			tItem.setTwoHanded(dis.readBoolean());
 			tItem.unaligned = dis.readBoolean();
 			
-			tItem.setMinimumLevel(dis.readByte());
+			tItem.level = dis.readByte();
 			tItem.setChance(dis.readByte());
 			tItem.setItemType(ItemTypes.type(dis.readByte()));
 			
@@ -658,13 +569,13 @@ public class Item
 			{
 				if(i < temp)
 				{
-					tItem.setStatsRequirement(Stats.type(i), dis.readByte());
-					tItem.setStatsAdjustment(Stats.type(i), dis.readByte());
+					tItem.stats[i] = dis.readByte();
+					tItem.modifyStats[i] = dis.readByte();
 				}
 				else
 				{
-					tItem.setStatsRequirement(Stats.type(i), (byte)0);
-					tItem.setStatsAdjustment(Stats.type(i), (byte)0);
+					tItem.stats[i] = 0;
+					tItem.modifyStats[i] = 0;
 				}
 			}
 			for(; i < temp; i++)
@@ -721,5 +632,12 @@ public class Item
 	public String toString()
 	{
 		return name;
+	}
+
+	@Override
+	public String generateDescription(boolean html)
+	{
+		// TODO Auto-generated method stub
+		return description;
 	}
 }

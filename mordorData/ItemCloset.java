@@ -41,8 +41,8 @@ public class ItemCloset
 		byte maxLevel = Util.NOTHING;
 		
 		while(iNode.next())
-			if(iNode.element().getMinimumLevel() > maxLevel)
-				maxLevel = iNode.element().getMinimumLevel();
+			if(iNode.element().getLevel() > maxLevel)
+				maxLevel = (byte)iNode.element().getLevel();
 		
 		return maxLevel;
 	}
@@ -57,7 +57,7 @@ public class ItemCloset
 		SkipIter<Item> iNode = items.getIterator();
 		
 		while(iNode.next())
-			levelList.insert(iNode.element(), (int)iNode.element().getMinimumLevel());
+			levelList.insert(iNode.element(), (int)iNode.element().getLevel());
 		
 		return levelList;
 	}
@@ -91,9 +91,9 @@ public class ItemCloset
 			
 			// If we have moved to a new level, also set the start key for
 			// the new level to the same key
-			if(currentLevel < iNode.element().getMinimumLevel())
+			if(currentLevel < iNode.element().getLevel())
 			{
-				currentLevel = iNode.element().getMinimumLevel();
+				currentLevel = iNode.element().getLevel();
 				levelKeys[currentLevel] = currentKey;
 			}
 			

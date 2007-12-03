@@ -359,8 +359,8 @@ public class DataBank
 				else
 				{
 					if(newGuild.getName().equalsIgnoreCase("Nomad"))
-						defaultGuild = newGuild.getGuildID();
-					guildTypes.insert(newGuild, (int)newGuild.getGuildID());
+						defaultGuild = (byte)newGuild.getID();
+					guildTypes.insert(newGuild, (int)newGuild.getID());
 				}
 			}
 			
@@ -1133,29 +1133,6 @@ public class DataBank
 	 */
 	public Item getRandomItem(byte maxLevel)
 	{
-	/*	Random rand = new Random(System.nanoTime());
-		
-		// Need to get the number of items upto max level
-		SkipList<Item> tList = new SkipList<Item>();
-		
-		QuadNode<Item> itNode = itemTypes.firstNode();
-		while(itNode.getRight() != null)
-		{
-			if(itNode.getElement().getMinimumLevel() <= maxLevel)
-				tList.insert(itNode.getElement(), itNode.getKey());
-			itNode = itNode.getRight();
-		}
-		if(tList.getSize() < 1)
-			return null;
-		if(tList.getSize() == 1)
-			return tList.first();
-		
-		int t = rand.nextInt(tList.getSize());
-		itNode = tList.firstNode();
-		for(int i = 0; i < t; i++)
-			itNode = itNode.getRight();
-		
-		return itNode.getElement();*/
 		return itemCloset.getItems().first();
 	}
 	
@@ -1258,13 +1235,16 @@ public class DataBank
 		while(tNode.next() && tNode.key() <= MAXGUILDCOUNT)
 		{
 			if(tNode.key() > lastKey)
-			{
-				newGuild = new Guild(lastKey);
-				guildTypes.insert(newGuild, (int)newGuild.getGuildID());
-				return newGuild;
-			}
+				break;
 			
 			lastKey++;
+		}
+		
+		if(tNode.key() != MAXGUILDCOUNT)
+		{
+			newGuild = new Guild(lastKey);
+			guildTypes.insert(newGuild, (int)newGuild.getID());
+			return newGuild;
 		}
 		
 		return null;
@@ -1525,6 +1505,9 @@ public class DataBank
 	public Item newItem()
 	{
 		SkipList<Item> itemTypes = itemCloset.getItems();
+		
+		if(itemCloset.getItems().getSize() >= Short.MAX_VALUE)
+			return null;
 		
 		short newID = 0;
 		

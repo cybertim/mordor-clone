@@ -279,7 +279,7 @@ public class NewPlayer extends JPanel implements ActionListener, ChangeListener
 	private boolean guildStatRequirements(Guild tGuild)
 	{
 		for(byte i = 0; i < jsStats.length; i++)
-			if((Integer)jsmStats[i].getValue() < tGuild.getStatRequired(Stats.type(i)))
+			if((Integer)jsmStats[i].getValue() < tGuild.getStat(Stats.type(i)))
 				return false;
 		
 		return true;

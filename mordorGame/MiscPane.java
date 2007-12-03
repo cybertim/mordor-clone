@@ -79,7 +79,7 @@ public class MiscPane extends JPanel
 			nText += "<TD> " + s.toString().substring(0, 3) + "</TD>";
 		nText += "</TR><TR><TD>Req</TD>";
 		for(Stats s : Stats.values())
-			nText += "<TD> " + item.getItem().getStatRequirement(s) + "</TD>";
+			nText += "<TD> " + item.getItem().getStat(s) + "</TD>";
 		nText += "</TR><TR><TD>Mod</TD>";
 		for(Stats s : Stats.values())
 			nText += "<TD> " + item.getItem().getStatAdjustment(s) + "</TD>";
@@ -184,7 +184,7 @@ public class MiscPane extends JPanel
 		
 		String northText = "<HTML><FONT SIZE=2><B>" + MONHEAD_STRINGS[nFrom] + ": " + monster.getMonster().getName() + "</B><BR><BR>";
 		northText += "<TABLE CELLPADDING=0 CELLSPACING=0><TR><TD><B>Size:</B></TD><TD>" +  monster.getMonster().getSize().toString() + "</TD></TR>";
-		northText += "<TR><TD><B>Type:</B></TD><TD>" + monster.getMonster().getMonsterClass().toString() + "</TD></TR>";
+		northText += "<TR><TD><B>Type:</B></TD><TD>" + monster.getMonster().getType().toString() + "</TD></TR>";
 		northText += "<TR><TD><B>Align:</B></TD><TD>" + monster.getMonster().getAlignment().toString() + "</TD></TR>";
 		northText += "<TR><TD><B>A/D:</B></TD><TD>" + monster.getMonster().getAttack() + "/" + monster.getMonster().getDefense() + "</TD></TR>";
 		northText += "<TR><TD><B>Avg. Hits:</B></TD><TD>" + monster.getMonster().getAvgHits() + "</TD></TR></TABLE></FONT></HTML>";

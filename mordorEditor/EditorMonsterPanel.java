@@ -26,12 +26,12 @@ public class EditorMonsterPanel extends JPanel implements ActionListener
 	
 	private JComboBox jcMonsterTypes, jcMonsters;
 	private JButton jbNewMonster, jbRemoveMonster, jbUpdateMonster;
-	private JButton jbName, monsterImg;
+	private JButton jbName, monsterImg, jbGenDescription;
 	private JButton jbItem, jbSecondItem, jbSpecificCompanion;
 	private JComboBox jcCompanion;
 	private JCheckBox jcbCompanion;
 	private JRadioButton[] jrAlignment;
-	private JComboBox jcDropType, jcSize;
+	private JComboBox jcSize;
 	private JTextArea taDescription;
 	private JTextField tfMinLevel, tfWealthMulti, tfChanceAppear, tfGroupNumber;
 	private JTextField tfStrength, tfConstitution, tfDexterity;
@@ -65,9 +65,9 @@ public class EditorMonsterPanel extends JPanel implements ActionListener
 		jbUpdateMonster.addActionListener(this);
 		jbName.addActionListener(this);
 		
-		jbNewMonster.setToolTipText("Add a new item");
-		jbRemoveMonster.setToolTipText("Remove this item");
-		jbUpdateMonster.setToolTipText("Update this item in dataBank");
+		jbNewMonster.setToolTipText("Add a new monster");
+		jbRemoveMonster.setToolTipText("Remove this monster");
+		jbUpdateMonster.setToolTipText("Update this monster in dataBank");
 		
 		itemBar.add(jbNewMonster);
 		itemBar.add(jbRemoveMonster);
@@ -97,8 +97,18 @@ public class EditorMonsterPanel extends JPanel implements ActionListener
 		
 		JPanel descriptionBox = new JPanel();
 		descriptionBox.setLayout(new BorderLayout());
-		descriptionBox.add(new JLabel("Description:"), BorderLayout.NORTH);
-		taDescription = new JTextArea(4, 20);
+		jbGenDescription = new JButton("Generate");
+		jbGenDescription.setToolTipText("Generate monster description.");
+		jbGenDescription.addActionListener(this);
+		
+		JPanel descTitle = new JPanel();
+		descTitle.add(new JLabel("Description"));
+		descTitle.add(jbGenDescription);
+		
+		descriptionBox.add(descTitle, BorderLayout.NORTH);
+		taDescription = new JTextArea(5, 25);
+		taDescription.setLineWrap(true);
+		taDescription.setWrapStyleWord(true);
 		descriptionBox.add(new JScrollPane(taDescription), BorderLayout.CENTER);
 		
 		JPanel fieldColText = new JPanel();
@@ -139,14 +149,11 @@ public class EditorMonsterPanel extends JPanel implements ActionListener
 		
 		JPanel combosCol = new JPanel();
 		
-		jcDropType = new JComboBox(DropTypes.values());
 		jcSize = new JComboBox(Size.values());
 		tfMinLevel = new JTextField(3);
 		tfWealthMulti = new JTextField(3);
 		tfChanceAppear = new JTextField(3);
 		
-		combosCol.add(new JLabel("Drop Type"));
-		combosCol.add(jcDropType);
 		combosCol.add(new JLabel("Size"));
 		combosCol.add(jcSize);
 		combosCol.add(new JLabel("Min. Level"));
@@ -232,7 +239,6 @@ public class EditorMonsterPanel extends JPanel implements ActionListener
 	 */
 	public void updateMonsterList()
 	{
-	//	itemBar.remove(jcMonsters);
 		String[] names = dataBank.getMonsterEden().getMonsterNamesByClass((MonsterClass)jcMonsterTypes.getSelectedItem());
 		
 		if(names == null)
@@ -243,12 +249,7 @@ public class EditorMonsterPanel extends JPanel implements ActionListener
 		}
 		
 		jcMonsters.setModel(new DefaultComboBoxModel(names));
-		
-		//jcMonsters.addActionListener(this);
-		
-	//	itemBar.add(jcMonsters);
 		revalidate();
-	//	repaint();
 	}
 	
 	public void updateMonsterInPanel()
@@ -270,10 +271,9 @@ public class EditorMonsterPanel extends JPanel implements ActionListener
 		tfAttack.setText(""+ monster.getAttack());
 		tfDefense.setText("" + monster.getDefense());
 		
-		jcDropType.setSelectedItem(monster.getDropType());
 		jcSize.setSelectedItem(monster.getSize());
 		
-		tfMinLevel.setText("" + monster.getMinMapLevel());
+		tfMinLevel.setText("" + monster.getLevel());
 		tfWealthMulti.setText("" + monster.getWealthMultiplier());
 		tfChanceAppear.setText("" + monster.getChanceOfAppearance());
 		
@@ -330,10 +330,9 @@ public class EditorMonsterPanel extends JPanel implements ActionListener
 		monster.setAttack(Short.parseShort(tfAttack.getText().trim()));
 		monster.setDefense(Short.parseShort(tfDefense.getText().trim()));
 		
-		monster.setDropType((DropTypes)jcDropType.getSelectedItem());
 		monster.setSize((Size)jcSize.getSelectedItem());
 		
-		monster.setMinMapLevel(Byte.parseByte(tfMinLevel.getText().trim()));
+		monster.setLevel(Byte.parseByte(tfMinLevel.getText().trim()));
 		monster.setWealthMultiplier(Byte.parseByte(tfWealthMulti.getText().trim()));
 		monster.setChanceOfAppearance(Byte.parseByte(tfChanceAppear.getText().trim()));
 		
@@ -521,6 +520,8 @@ public class EditorMonsterPanel extends JPanel implements ActionListener
 			monsBrowse.pack();
 			monsBrowse.setVisible(true);
 		}
+		else if(e.getSource() == jbGenDescription)
+			taDescription.setText(monster.generateDescription(false));
 	}
 
 }

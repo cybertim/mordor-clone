@@ -9,6 +9,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import structures.LinkedList;
 import structures.ListIter;
@@ -38,10 +39,11 @@ public class StorePane extends JPanel implements ActionListener,
 	private StoreInventory inventory;
 	private JButton jbUncurse, jbCombine, jbInfoSell, jbSell, jbID, jbBuy, jbInfoBuy;
 	private JButton[] jbAlign;
-	private JLabel jlBuyCost, jlSellValue, jlIDCost, jlUncurseCost, jlCombineItems;
+	private JLabel jlBuyCost, jlSellValue, jlIDCost, jlUncurseCost, jlCombineItems, jlBuyItem;
+	private JTextField tfBuySearch;
 	private long buyCost, sellValue, IDCost, uncurseCost;
 	private LinkedList<ItemInstance> combineItems;
-	private StoreItemLabel ipSell, ipBuy, ipCombine, ipUncurse;
+	private StoreItemLabel ipSell, ipCombine, ipUncurse;
 	
 	private Player player;
 	private DataBank databank;
@@ -172,6 +174,12 @@ public class StorePane extends JPanel implements ActionListener,
 		
 		
 		// Inventory & Buy pane
+		/*this.jbBuy
+		jbInfoBuy
+		this.jlBuyCost
+		this.jlBuyItem
+		tfBuySearch
+		buyCost (long)*/
 		
 		setLayout(new BorderLayout());
 		add(leftPane, BorderLayout.WEST);
@@ -255,7 +263,7 @@ public class StorePane extends JPanel implements ActionListener,
 		ItemInstance item = ipSell.getItem();
 		
 		// Get the sell cost.
-		sellValue = store.getStoreRecord(item.getItem()).nextBuyCost(item.getAlignment());
+		sellValue = (item.isCursed() && item.getIDLevel() == Identification.Everything) ? 1 : (long)((Util.STORE_SELL_ID_ADJUST * (item.getIDLevel().value() + 1))  * store.getStoreRecord(item.getItem()).nextBuyCost(item.getAlignment()));
 		jbSell.setEnabled(true);
 
 		// Setup alignments
@@ -389,10 +397,9 @@ public class StorePane extends JPanel implements ActionListener,
 				if(e.getSource() == jbAlign[al.value()])
 				{
 					item = ipSell.getItem();
-					
-					// Can't realign something that doesn't exist!
-					// Nor something we have equipped.
-					if(item == null || player.isItemEquipped(item))
+					// Can't realign something that doesn't exist, is equipped
+					// or haven't yet identified.
+					if(item == null || player.isItemEquipped(item) || item.getIDLevel() == Identification.Everything)
 						return;
 					
 					// If we can afford it, realign it.

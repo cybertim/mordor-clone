@@ -24,7 +24,6 @@ import mordorData.Race;
 import mordorEnums.ItemTypes;
 import mordorEnums.MonsterClass;
 import mordorEnums.SpellClass;
-import mordorEnums.SpellType;
 
 public class StatisticsPane extends JPanel implements ActionListener, Scrollable
 {
@@ -183,7 +182,7 @@ public class StatisticsPane extends JPanel implements ActionListener, Scrollable
 		SkipIter<Guild> qNode = dataBank.getGuilds().getIterator();
 		for(int i = 0; qNode.next() && i < guildIDs.length; i++)
 		{
-			guildIDs[i] = qNode.element().getGuildID();
+			guildIDs[i] = (byte)qNode.element().getID();
 			totGuildMembers[i] = 0;
 		}
 		

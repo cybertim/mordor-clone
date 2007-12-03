@@ -182,7 +182,7 @@ public class EditorSpellPanel extends JPanel implements ActionListener
 		taDescription.setText(currentSpell.getDescription());
 		
 		// Setup the spell type info
-		jcSpellType.setSelectedItem(currentSpell.getSpellType());
+		jcSpellType.setSelectedItem(currentSpell.getType());
 		setSpellSubtypeList();
 		tfNumGroups.setText("" + currentSpell.getNumberGroupsAffect());
 		tfStrength.setText("" + currentSpell.getSpellStrength());
@@ -204,11 +204,11 @@ public class EditorSpellPanel extends JPanel implements ActionListener
 		}
 		
 		// Setup the base Level
-		tfBaseLevel.setText("" + currentSpell.getBaseLevel());
+		tfBaseLevel.setText("" + currentSpell.getLevel());
 		
 		// Setup the required stats.
 		for(Stats st : Stats.values())
-			tfRequiredStats[st.value()].setText("" + currentSpell.getStats(st));
+			tfRequiredStats[st.value()].setText("" + currentSpell.getStat(st));
 	}
 	
 	public boolean updateSpell()
@@ -218,10 +218,10 @@ public class EditorSpellPanel extends JPanel implements ActionListener
 		
 		currentSpell.setEffectString(tfEffectName.getText());
 		currentSpell.setDescription(taDescription.getText());
-		currentSpell.setBaseLevel(Short.parseShort(tfBaseLevel.getText().trim()));
+		currentSpell.setLevel(Short.parseShort(tfBaseLevel.getText().trim()));
 		for(Stats st : Stats.values())
-			currentSpell.setStats(st, Byte.parseByte(tfRequiredStats[st.value()].getText().trim()));
-		currentSpell.setSpellType((SpellType)jcSpellType.getSelectedItem());
+			currentSpell.setStat(st, Byte.parseByte(tfRequiredStats[st.value()].getText().trim()));
+		currentSpell.setType((SpellType)jcSpellType.getSelectedItem());
 		if((SpellType)jcSpellType.getSelectedItem() == SpellType.State)
 			currentSpell.setSubType(((PlayerState)jcSpellSubtype.getSelectedItem()).value());
 		else
@@ -245,7 +245,7 @@ public class EditorSpellPanel extends JPanel implements ActionListener
 		
 		// Since the spell reference should hold the base level for spell types, we need to set
 		// it here. This is a feature of how spell books work to make all of them consistent.
-		dataBank.getSpellBook().getSpell(currentSpell.getID()).setLevel(currentSpell.getBaseLevel());
+		dataBank.getSpellBook().getSpell(currentSpell.getID()).setLevel(currentSpell.getLevel());
 		
 		return true;
 	}

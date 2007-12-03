@@ -56,7 +56,7 @@ public class GuildRecord
 		guild = newGuild;
 		// newGuild will be null when we are loading from file. The guild id will come next.
 		if(newGuild != null)
-			guildID = newGuild.getGuildID();
+			guildID = (byte)newGuild.getID();
 		experience = 0;
 		level = 0;
 		pinned = false;
@@ -174,7 +174,7 @@ public class GuildRecord
 				// re-roll.
 				if(item.isRare() && random.nextInt(100) < QUEST_RAREREROLLPERCENT)
 					item = dataBank.getRandomItem(maxLevel);
-			} while(item.getItemBaseValue() <= QUEST_ITEMMINVALUE || item.getMinimumLevel() == 0 || item.isCursed());
+			} while(item.getItemBaseValue() <= QUEST_ITEMMINVALUE || item.getLevel() == 0 || item.isCursed());
 			
 			questItem = item;
 			questItemID = item.getID();
@@ -451,7 +451,7 @@ public class GuildRecord
             return false;
         
         guild = newGuild;
-        guildID = newGuild.getGuildID();
+        guildID = (byte)newGuild.getID();
         return true;
     }
 	

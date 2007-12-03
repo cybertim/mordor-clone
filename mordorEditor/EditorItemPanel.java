@@ -28,7 +28,7 @@ public class EditorItemPanel extends JPanel implements ActionListener
 	private Item item;
 	private JPanel itemBar, infoBar;
 	
-	private JButton jbAddItem, jbRemoveItem, jbUpdateItem, jbName;
+	private JButton jbAddItem, jbRemoveItem, jbUpdateItem, jbName, jbGenDescription;
 	private JComboBox jcItemClass, jcItems;
 	private JTextArea taDescription;
 	private JCheckBox[] cbAlignment;
@@ -168,7 +168,7 @@ public class EditorItemPanel extends JPanel implements ActionListener
 		otherValsText.add(new JLabel("Item Value"));
 		otherValsFields.add(tfItemValue);
 		
-		guildPane = new EditorItemPanel_GuildsPane(item, this, dataBank);
+		guildPane = new EditorItemPanel_GuildsPane(item, dataBank);
 		spGuild = new JScrollPane(guildPane);
 		spGuild.setBackground(this.getBackground());
 		
@@ -265,10 +265,20 @@ public class EditorItemPanel extends JPanel implements ActionListener
 		
 		JPanel descPanel = new JPanel();
 		
-		taDescription = new JTextArea(3, 30);
+		taDescription = new JTextArea(4, 40);
+		taDescription.setWrapStyleWord(true);
+		taDescription.setLineWrap(true);
 		JScrollPane descScroll = new JScrollPane(taDescription);
 		
-		descPanel.add(new JLabel("Description:"));
+		JPanel descTitle = new JPanel();
+		descTitle.setLayout(new GridLayout(2, 1));
+		jbGenDescription = new JButton("Generate");
+		jbGenDescription.setToolTipText("Generate the item description.");
+		jbGenDescription.addActionListener(this);
+		
+		descTitle.add(new JLabel("Description:"));
+		descTitle.add(jbGenDescription);
+		descPanel.add(descTitle);
 		descPanel.add(descScroll);
 		
 		lowerPanel.add(descPanel, BorderLayout.CENTER);
@@ -313,18 +323,16 @@ public class EditorItemPanel extends JPanel implements ActionListener
 		
 		for(Stats st : Stats.values())
 		{
-			tfStatRequirement[st.value()].setText("" + item.getStatRequirement(st));
+			tfStatRequirement[st.value()].setText("" + item.getStat(st));
 			tfStatAdjustment[st.value()].setText("" + item.getStatAdjustment(st));
 		}
 		
-		tfLevel.setText("" + item.getMinimumLevel());
+		tfLevel.setText("" + item.getLevel());
 		tfChance.setText("" + item.getChance());
 		tfSwings.setText("" + item.getSwings());
-		tfSwings.setEnabled(item.getItemType().getEquippingPart() == BodyParts.Weapon);
 		tfAttack.setText("" + item.getAttackModifier());
 		tfDefense.setText("" + item.getDefenseModifier());
 		tfDamageMod.setText("" + item.getDamageModifier());
-		tfDamageMod.setEnabled(item.getItemType().getEquippingPart() == BodyParts.Weapon);
 		tfItemValue.setText("" + item.getItemBaseValue());
 		
 		guildPane.updatePane(item);
@@ -362,11 +370,11 @@ public class EditorItemPanel extends JPanel implements ActionListener
 		
 		for(Stats st : Stats.values())
 		{
-			item.setStatsRequirement(st, Byte.parseByte(tfStatRequirement[st.value()].getText().trim()));
+			item.setStat(st, Byte.parseByte(tfStatRequirement[st.value()].getText().trim()));
 			item.setStatsAdjustment(st, Byte.parseByte(tfStatAdjustment[st.value()].getText().trim()));
 		}
 		
-		item.setMinimumLevel(Byte.parseByte(tfLevel.getText().trim()));
+		item.setLevel(Byte.parseByte(tfLevel.getText().trim()));
 		item.setChance(Byte.parseByte(tfChance.getText().trim()));
 		item.setSwings(Byte.parseByte(tfSwings.getText().trim()));
 		item.setAttack(Short.parseShort(tfAttack.getText().trim()));
@@ -714,6 +722,10 @@ public class EditorItemPanel extends JPanel implements ActionListener
 		{
 			for(byte i = 0; i < this.cbAlignment.length; i++)
 				cbAlignment[i].setSelected(true);
+		}
+		else if(e.getSource() == jbGenDescription)
+		{
+			taDescription.setText(item.generateDescription(dataBank, false));
 		}
 		
 		for(byte i = 0; i < cbAlignment.length; i++)

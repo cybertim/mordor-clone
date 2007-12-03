@@ -5,6 +5,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
 import mordorEnums.BodyParts;
+import mordorEnums.Identification;
 import mordorEnums.ItemTypes;
 
 public final class Util
@@ -34,68 +35,17 @@ public final class Util
 	
 	/* Store */
 	public static final double STORE_ID_ADJUSTMENT = 0.25;
+	/** Multiple for cost to adjust an item based on base value */
 	public static final double STORE_ALIGN_ADJUSTMENT = 0.40;
 	public static final double STORE_SELL_MARKUP = 1.25;
+	/** Multiple for selling price of an item based on identification level */
+	public static final double STORE_SELL_ID_ADJUST = 1 / Identification.values().length;
 	public static final double STORE_BUY_MAXADJUSTMENT = 0.25;
 	
 	protected Util()
 	{
 		
 	}
-	
-	/*
-	public static BodyParts getEquippingBodyPart(ItemTypes itemType)
-	{
-		switch(itemType)
-		{
-		case Hands:
-			return BodyParts.Hands;
-		case Dagger:
-		case Cross:
-		case Sword:
-		case Staff:
-		case Mace:
-		case Axe:
-		case Hammer:
-		case Rod:
-			return BodyParts.Weapon;
-		case LeatherArmor:
-		case ChainArmor:
-		case PlateArmor:
-			return BodyParts.Torso;
-		case Shield:
-			return BodyParts.Shield;
-		case Cap:
-		case Helmet:
-			return BodyParts.Head;
-		case Gloves:
-		case Gauntlets:
-			return BodyParts.Gloves;
-		case Cloak:
-			return BodyParts.Cloak;
-		case Bracers:
-			return BodyParts.Bracers;
-		case Sash:
-			return BodyParts.Sash;
-		case Belt:
-			return BodyParts.Belt;
-		case Boots:
-			return BodyParts.Boots;
-		case Ring:
-			return BodyParts.Finger;
-		case Amulet:
-			return BodyParts.Neck;
-		case GuildCrest:
-			return BodyParts.Crest;
-		}
-		
-		return BodyParts.None;
-	}*/
-	
-	/*public static boolean isEquipment(ItemTypes itemType)
-	{
-		return (itemType.getEquippingPart() != BodyParts.Objects);
-	}*/
 	
 	/**
 	 * Takes an integer and if it is below min, or above max, sets

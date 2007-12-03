@@ -29,17 +29,12 @@ public class Monster extends MObject<MonsterClass>
 	public static final byte MONSTER_USECLASSWEALTH = -1;
 
 	private short monsterImg;
-//	private String name, 
 	private String description;
-//	private byte minimumMapLevel;
-//	private MonsterClass monsterClass;
 	private Alignment alignment;
 	private Size size;
-//	private byte strength, constitution, dexterity;
 	private short averageHits;//, attack, defense;
 	private byte wealthMulti, chanceOfAppear;
 	private DropTypes dropType;
-//	private boolean aquatic;//, laired;
 	private boolean[] monsterAbilities, itemType, spellClass;
 	private byte[] resistances;
 	private byte groupSize;				// Number of monsters to appear in a stack.
@@ -50,20 +45,17 @@ public class Monster extends MObject<MonsterClass>
 	public Monster(short newID)
 	{
 		super(newID);
-		//monsterID = newID;
-		
-		//name = Util.NOSTRING;
 		description = "";
 		size = Size.Normal;
 		alignment = Alignment.Neutral;
-		mType = MonsterClass.Animals;
-		mLevel = 0;
-		mStats[Stats.Strength.value()] = 1;
-		mStats[Stats.Constitution.value()] = 1;
-		mStats[Stats.Dexterity.value()] = 1;
+		type = MonsterClass.Animals;
+		level = 0;
+		stats[Stats.Strength.value()] = 1;
+		stats[Stats.Constitution.value()] = 1;
+		stats[Stats.Dexterity.value()] = 1;
 		wealthMulti = MONSTER_USECLASSWEALTH;
-		mAttack = 1;
-		mDefense = 1;
+		attack = 1;
+		defense = 1;
 		dropType = DropTypes.None;
 		monsterImg = 0;
 	//	aquatic = false;
@@ -92,24 +84,6 @@ public class Monster extends MObject<MonsterClass>
 		specificCompanionID = Util.NOTHING;
 	}
 	
-	/**
-	 * Retrieves the monsterID (that is, the ID of its type)
-	 * @return short	The monster's ID
-	 */
-	/*public short getID()
-	{
-		return monsterID;
-	}*/
-	
-	/**
-	 * Retrieves the name of the monster.
-	 * @return String
-	 */
-	/*public String getName()
-	{
-		return name;
-	}*/
-	
 	public String getDescription()
 	{
 		return description;
@@ -119,17 +93,18 @@ public class Monster extends MObject<MonsterClass>
 	 * Using the information in the monster, generate its description.
 	 * @return String[] Array for each bit of text.
 	 */
-	public String generateDescription()
+	public String generateDescription(boolean html)
 	{
-		String description;
-		description = "<HTML>" + mName + "s are " + size.name() + " size " + mType.name() + " who are generally " + alignment.name() + " in nature.<BR><BR>";
-		description += "With an average A/D of " + mAttack + "/" + mDefense + " and average hits of " + averageHits
-							+ " and a " + mStats[Stats.Strength.value()] + " Strength, " + mStats[Stats.Constitution.value()] + " Constitution, " + mStats[Stats.Dexterity.value()] + 
+		String eol = (html) ? "<BR>" : "\n";
+		
+		String description = (html) ? "<HTML>" : "";
+		description += name + "s are " + size.name() + " size " + type.name() + " who are generally " + alignment.name() + " in nature." + eol + eol;
+		description += "With an average A/D of " + attack + "/" + defense + ", average hits of " + averageHits
+							+ " and " + stats[Stats.Strength.value()] + " Strength, " + stats[Stats.Constitution.value()] + " Constitution, " + stats[Stats.Dexterity.value()] + 
 							" Dexterity, it is also known that these creatures' abilities and attacks include: ";
 		// parse abilities/spells
 		
 		// Resistances
-		description += mName + " is ";
 		int count = 0;
 		for(Resistance al : Resistance.values())
 			if(this.resistances[al.value()] != 0)
@@ -142,11 +117,13 @@ public class Monster extends MObject<MonsterClass>
 		description += (count == 0) ? " not" : "";
 		description += " resistant.";
 		
-		description += "";
+		description += "" + eol + eol;
 		if(this.isLaired())
-			description += "<BR><BR>These monsters are only found in their Lair.</HTML>";
+			description += "These monsters are only found in their Lair.";
 		else
-			description += "<BR><BR>These monsters are found on level " + mLevel + "</HTML>";
+			description += "These monsters are found on level " + level;
+		
+		description += (html) ? "</HTML>" : "";
 		
 		return description;
 	}
@@ -173,9 +150,9 @@ public class Monster extends MObject<MonsterClass>
 	 * Retrieve the monster class of this monster.
 	 * @return
 	 */
-	public MonsterClass getMonsterClass()
+	/*public MonsterClass getMonsterClass()
 	{
-		return mType;
+		return ype;
 	}
 	
 	public byte getMinMapLevel()
@@ -201,7 +178,7 @@ public class Monster extends MObject<MonsterClass>
 	
 	public byte getWealthMultiplier()
 	{
-		return (wealthMulti == MONSTER_USECLASSWEALTH) ? mType.getWealthMultiplier() : wealthMulti;
+		return (wealthMulti == MONSTER_USECLASSWEALTH) ? type.getWealthMultiplier() : wealthMulti;
 	}
 	
 	public byte getChanceOfAppearance()
@@ -432,20 +409,20 @@ public class Monster extends MObject<MonsterClass>
 	 * Set the class of monster.
 	 * @param newMonType
 	 */
-	public void setMonsterClass(MonsterClass newMonClass)
+	/*public void setMonsterClass(MonsterClass newMonClass)
 	{
 		mType = newMonClass;
-	}
+	}*/
 	
 	/**
 	 * Set the minimum level at which this monster should generated in
 	 * the dungeon.
 	 * @param newMinMapLevel
 	 */
-	public void setMinMapLevel(byte newMinMapLevel)
+	/*public void setMinMapLevel(byte newMinMapLevel)
 	{
 		mLevel = Util.FITBYTE(newMinMapLevel, 0, Map.MAXDEPTH);
-	}
+	}*/
 	
 	/**
 	 * Set the strength of the monster.
@@ -674,15 +651,15 @@ public class Monster extends MObject<MonsterClass>
 	{
 		try
 		{
-			dos.writeShort(mID);
+			dos.writeShort(ID);
 			
 			dos.writeByte(size.value());
 			dos.writeByte(alignment.value());
-			dos.writeByte(mType.value());
-			dos.writeByte(mLevel);
-			dos.writeByte(mStats[Stats.Strength.value()]);
-			dos.writeByte(mStats[Stats.Constitution.value()]);
-			dos.writeByte(mStats[Stats.Dexterity.value()]);
+			dos.writeByte(type.value());
+			dos.writeByte(level);
+			dos.writeByte(stats[Stats.Strength.value()]);
+			dos.writeByte(stats[Stats.Constitution.value()]);
+			dos.writeByte(stats[Stats.Dexterity.value()]);
 			dos.writeByte(wealthMulti);
 			dos.writeByte(chanceOfAppear);
 			dos.writeByte(dropType.value());
@@ -692,8 +669,8 @@ public class Monster extends MObject<MonsterClass>
 			
 			dos.writeShort(monsterImg);
 			dos.writeShort(averageHits);
-			dos.writeShort(mAttack);
-			dos.writeShort(mDefense);
+			dos.writeShort(attack);
+			dos.writeShort(defense);
 			
 			long[] longs;
 			
@@ -733,16 +710,16 @@ public class Monster extends MObject<MonsterClass>
 			dos.writeShort(secondItemID);
 			dos.writeShort(specificCompanionID);
 			
-			dos.writeUTF(mName);
+			dos.writeUTF(name);
 			dos.writeUTF(description);
 			
 		}
 		catch(Exception e)
 		{
-			System.err.println("Error saving monster " + mID + "\nError: " + e);
+			System.err.println("Error saving monster " + ID + "\nError: " + e);
 			return false;
 		}
-		return true; // Why was this false?
+		return true;
 	}
 	
 	/**
@@ -761,17 +738,14 @@ public class Monster extends MObject<MonsterClass>
 			
 			newMonster.setSize(Size.type(dis.readByte()));
 			newMonster.setAlignment(Alignment.type(dis.readByte()));
-			newMonster.setMonsterClass(MonsterClass.type(dis.readByte()));
-			newMonster.setMinMapLevel(dis.readByte());
-			newMonster.mStats[Stats.Strength.value()] = dis.readByte();
-			newMonster.mStats[Stats.Constitution.value()] = dis.readByte();
-			newMonster.mStats[Stats.Dexterity.value()] = dis.readByte();
+			newMonster.type = MonsterClass.type(dis.readByte());
+			newMonster.level = dis.readByte();
+			newMonster.stats[Stats.Strength.value()] = dis.readByte();
+			newMonster.stats[Stats.Constitution.value()] = dis.readByte();
+			newMonster.stats[Stats.Dexterity.value()] = dis.readByte();
 			newMonster.setWealthMultiplier(dis.readByte());
 			newMonster.setChanceOfAppearance(dis.readByte());
 			newMonster.setDropType(DropTypes.type(dis.readByte()));
-			
-			//newMonster.setAquatic(dis.readBoolean());
-			//dis.readBoolean(); // TODO DEelete
 			
 			newMonster.setMonsterImg(dis.readShort());
 			newMonster.setAverageHits(dis.readShort());

@@ -18,20 +18,15 @@ import structures.ListIter;
  * @author August Junkala. April 8, 2007
  *
  */
-public class Guild
+public class Guild extends MObject<Byte>
 {
-	private byte requiredStats[];
 	private byte averageHP, standardHP, experiencePenalty, questPercentage;
-	private String name;
-	private String description;
-	private byte guildID;
 	private boolean[] alignment;
 	private String guildMasterName;
 	private short guildMasterLevel;
 	private short[] extraSwings;
-	private short maxAttack, maxDefense, maxLevelAD, maximumLevel;
+	private short maximumLevel;//maxAttack, maxDefense, , maxLevelAD;
 	private short crestID;
-	private byte goldFactor;
 	private long joinCost;
 	private float[] skills;
 	private LinkedList<Race> allowedRaces;
@@ -42,27 +37,12 @@ public class Guild
 	// ggf = GGF is GuildGoldFactor, the number displayed in Wabbit's Editor as "GoldPerLev?" (click on "Show Spell Data" on the Guilds form). Its value is 1 for Warrior, 2 for Paladin, 3 for Nomad, Seeker, Mage, and Sorcerer, 4 for Wizard and Healer, 5 for Ninja and Villain, 7 for Scavenger, and 9 for Thief.\
 	
 	public static final byte SWINGS_MAX = 4;
-
-/*	public static final byte SKILL_TYPES = 6;
-	public static final String[] SKILL_NAMES = {"Thieving", "Back-Stabbing", "Critical Hits",
-								"Multiple Swings", "Fighting", "Perception"};
-	public static final byte SKILL_THIEVING = 0;
-	public static final byte SKILL_BACKSTABBING = 1;
-	public static final byte SKILL_CRITICALHITS = 2;
-	public static final byte SKILL_EXTRASWINGS = 3;
-	public static final byte SKILL_FIGHTING = 4;
-	public static final byte SKILL_PERCEPTION = 5;*/
 	
 	public static final byte NOFEEGUILDS = 2; // How many guilds are the fees waived for.
 	
 	Guild(byte newID)
 	{
-		name = Util.NOSTRING;
-		guildID = newID;
-		
-		requiredStats = new byte[Stats.values().length];
-		for(byte i = 0; i < requiredStats.length; i++)
-			requiredStats[i] = (byte)0;
+		super(newID);
 		
 		alignment = new boolean[Alignment.values().length];
 		for(byte i = 0; i < alignment.length; i++)
@@ -80,12 +60,12 @@ public class Guild
 		for(byte i = 0; i < SWINGS_MAX; i++)
 			extraSwings[i] = -1;
 		
-		maxAttack = maxDefense = 250;
-		maxLevelAD = 1000;
+		attack = defense = 250;
+		level = 1000;
 		
 		crestID = -1;
 		
-		goldFactor = 1;
+		type = 1;
 		joinCost = 1;
 		
 		skills = new float[GuildSkill.values().length];
@@ -96,21 +76,6 @@ public class Guild
 		learnedSpells = new LinkedList<SpellReference>();
 		
 		guildMaster = null;
-	}
-	
-	public byte getGuildID()
-	{
-		return guildID;
-	}
-	
-	public String getName()
-	{
-		return name;
-	}
-	
-	public String getDescription()
-	{
-		return description;
 	}
 	
 	/**
@@ -128,7 +93,7 @@ public class Guild
 	 */
 	public short getGuildMasterLevel()
 	{
-		return (guildMaster == null) ? guildMasterLevel : guildMaster.getGuildRecord(guildID).getLevel();
+		return (guildMaster == null) ? guildMasterLevel : guildMaster.getGuildRecord((byte)ID).getLevel();
 	}
 	
 	/**
@@ -139,16 +104,6 @@ public class Guild
 	public Player getGuildMaster()
 	{
 		return guildMaster;
-	}
-	
-	/**
-	 * Retrieve the value of a specific required stat.
-	 * @param statType
-	 * @return
-	 */
-	public byte getStatRequired(Stats statType)
-	{
-		return requiredStats[statType.value()];
 	}
 	
 	public byte getAH()
@@ -206,21 +161,6 @@ public class Guild
 		return extraSwings[swingNum];
 	}
 	
-	public short getMaxAttack()
-	{
-		return maxAttack;
-	}
-	
-	public short getMaxDefense()
-	{
-		return maxDefense;
-	}
-	
-	public short getMaxLevelAD()
-	{
-		return maxLevelAD;
-	}
-	
 	public Item getCrest()
 	{
 		return guildCrest;
@@ -233,7 +173,7 @@ public class Guild
 	
 	public byte getGGF()
 	{
-		return goldFactor;
+		return type;
 	}
 	
 	/**
@@ -280,16 +220,6 @@ public class Guild
 		return allowedRaces;
 	}
 	
-	public void setName(String newName)
-	{
-		name = newName;
-	}
-	
-	public void setDescription(String newDesc)
-	{
-		description = newDesc;
-	}
-	
 	public void setAlignment(Alignment nAlignment, boolean allowed)
 	{
 		alignment[nAlignment.value()] = allowed;
@@ -305,10 +235,10 @@ public class Guild
 	{
 		if(guildMaster != null)
 		{
-			if(guildMaster.getGuildRecord(guildID) != null)
+			if(guildMaster.getGuildRecord((byte)ID) != null)
 			{
 				guildMasterName = guildMaster.getName();
-				guildMasterLevel = guildMaster.getGuildRecord(guildID).getLevel();
+				guildMasterLevel = guildMaster.getGuildRecord((byte)ID).getLevel();
 			}
 			else
 				return false;
@@ -357,16 +287,6 @@ public class Guild
 	}
 	
 	/**
-	 * Sets the required value for the specified stat.
-	 * @param statType
-	 * @param statValue
-	 */
-	public void setRequiredStats(Stats statType, byte statValue)
-	{
-		requiredStats[statType.value()] = statValue;
-	}
-	
-	/**
 	 * Set the level the specified swing number is aquired at.
 	 * @param swingNum
 	 * @param swingLevel
@@ -375,21 +295,6 @@ public class Guild
 	{
 		if(swingNum < extraSwings.length)
 			extraSwings[swingNum] = swingLevel;
-	}
-	
-	public void setMaxAttack(short newMAttack)
-	{
-		maxAttack = newMAttack;
-	}
-	
-	public void setMaxDefense(short newMDefense)
-	{
-		maxDefense = newMDefense;
-	}
-	
-	public void setMaxLevelAD(short newMLAD)
-	{
-		maxLevelAD = newMLAD;
 	}
 	
 	/**
@@ -409,7 +314,7 @@ public class Guild
 	
 	public void setGuildGoldFactor(byte newGGF)
 	{
-		goldFactor = newGGF;
+		type = newGGF;
 	}
 	
 	public void setJoinCost(long newJoinCost)
@@ -465,7 +370,7 @@ public class Guild
 	public boolean joinGuild(Player newPlayer)
 	{
 		// Is the player a member already?
-		if(newPlayer.getGuildRecord(guildID) != null)
+		if(newPlayer.getGuildRecord((byte)ID) != null)
 			return false;
 		
 		// Is the player properly aligned
@@ -478,7 +383,7 @@ public class Guild
 		
 		// Are all the player's stats high enough
 		for(Stats st : Stats.values())
-			if(requiredStats[st.value()] > newPlayer.getNaturalStat(st))
+			if(stats[st.value()] > newPlayer.getNaturalStat(st))
 				return false;
 		
 		// Is this guild join counted as a freebie
@@ -499,7 +404,7 @@ public class Guild
 	{
 		try
 		{
-			dos.writeByte(guildID);
+			dos.writeByte((byte)ID);
 			
 			dos.writeBoolean(alignment[Alignment.Good.value()]);
 			dos.writeBoolean(alignment[Alignment.Neutral.value()]);
@@ -509,15 +414,15 @@ public class Guild
 			dos.writeByte(standardHP);
 			dos.writeByte(experiencePenalty);
 			dos.writeByte(questPercentage);
-			dos.writeByte(goldFactor);
+			dos.writeByte(type);
 			
-			for(int i = 0; i < requiredStats.length; i++)
-				dos.writeByte(requiredStats[i]);
+			for(int i = 0; i < stats.length; i++)
+				dos.writeByte(stats[i]);
 			
 			dos.writeShort(guildMasterLevel);
-			dos.writeShort(maxAttack);
-			dos.writeShort(maxDefense);
-			dos.writeShort(maxLevelAD);
+			dos.writeShort(attack);
+			dos.writeShort(defense);
+			dos.writeShort(level);
 			dos.writeShort(maximumLevel);
 			
 			for(int i = 0; i < SWINGS_MAX; i++)
@@ -594,12 +499,12 @@ public class Guild
 			newGuild.setGuildGoldFactor(dis.readByte());
 			
 			for(Stats st : Stats.values())
-				newGuild.setRequiredStats(st, dis.readByte());
+				newGuild.stats[st.value()] = dis.readByte();
 			
 			short gmLevel = dis.readShort();
-			newGuild.setMaxAttack(dis.readShort());
-			newGuild.setMaxDefense(dis.readShort());
-			newGuild.setMaxLevelAD(dis.readShort());
+			newGuild.attack = dis.readShort();
+			newGuild.defense = dis.readShort();
+			newGuild.level = dis.readShort();
 			newGuild.setML(dis.readShort());
 			
 			for(byte i = 0; i < SWINGS_MAX; i++)
@@ -644,10 +549,10 @@ public class Guild
 				}
 			}
 			
-			newGuild.setName(dis.readUTF());
+			newGuild.name = dis.readUTF();
 			if(newGuild.getGuildMaster() == null)
 				newGuild.setGuildMaster(dis.readUTF(), gmLevel);
-			newGuild.setDescription(dis.readUTF());
+			newGuild.description = dis.readUTF();
 		}
 		catch(Exception e)
 		{
@@ -656,5 +561,11 @@ public class Guild
 		}
 		
 		return newGuild;
+	}
+
+	@Override
+	public String generateDescription(boolean html) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

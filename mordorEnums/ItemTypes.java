@@ -61,25 +61,6 @@ public enum ItemTypes
 	}
 	
 	/**
-	 * Is this type a weapon.
-	 * @return True if it is a weapon.
-	 */
-/*	public boolean isWeapon()
-	{
-		return (itemType == 28 || itemType <= 7);
-	}*/
-	
-	/**
-	 * Is this a usable type of item (e.g. potions)
-	 * This does not include if a spell can be cast from the item.
-	 * @return	True if it is a usable type.
-	 */
-/*	public boolean isUsable()
-	{
-		return (itemType != 28 && itemType <= 31 && itemType >= 23);
-	}*/
-	
-	/**
 	 * Get the type from a value.
 	 * @param val int.
 	 * @return
@@ -92,9 +73,4 @@ public enum ItemTypes
 		
 		return Hands;
 	}
-	
-	/*public static boolean isWeaponStatic(byte nItemType)
-	{
-		return nItemType == ItemTypes.Rod.value() || (nItemType >= ItemTypes.Hands.value() && nItemType <= ItemTypes.Hammer.value());
-	}*/
 }

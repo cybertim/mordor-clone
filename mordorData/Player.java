@@ -108,16 +108,14 @@ public class Player extends MObject<Race>
 		super(newPlayerID);
 		dataBank = nDataBank;
 		
-		mName = Util.NOSTRING;
 		coords = dataBank.getMap().getExitCoords();
 		
-		mType = dataBank.getRaces().first();
+		type = dataBank.getRaces().first();
 		
-//		naturalStats = new byte[Stats.values().length];
 		acquiredStats = new byte[Stats.values().length];
-		for(byte i = 0; i < mStats.length; i++)
+		for(byte i = 0; i < stats.length; i++)
 		{
-			mStats[i] = Stats.MINIMUMVALUE;
+			stats[i] = Stats.MINIMUMVALUE;
 			acquiredStats[i] = (byte)0;
 		}
 		
@@ -138,8 +136,8 @@ public class Player extends MObject<Race>
 		hp = maxHP = DEFAULTHEALTH;
 		mp = getMaxMP();
 		
-		mAttack = INITIALATTACK;
-		mDefense = INITIALDEFENSE;
+		attack = INITIALATTACK;
+		defense = INITIALDEFENSE;
 		goldOnHand = INITIALGOLD;
 		
 		kills = 0;
@@ -280,7 +278,7 @@ public class Player extends MObject<Race>
 	 */
 	public Race getRace()
 	{
-		return mType;
+		return type;
 	}
     
     public byte getRaceID()
@@ -295,7 +293,7 @@ public class Player extends MObject<Race>
      */
 	public byte getNaturalStat(Stats statType)
 	{
-		return mStats[statType.value()];
+		return stats[statType.value()];
 	}
 	
 	/**
@@ -326,7 +324,7 @@ public class Player extends MObject<Race>
 	 */
 	public byte getNaturalResistance(Resistance resistType)
 	{
-		return mType.getResistance(resistType);
+		return type.getResistance(resistType);
 	}
 	
 	/**
@@ -413,7 +411,7 @@ public class Player extends MObject<Race>
 	
 	public short getItemAttack()
 	{
-		return mAttack;
+		return attack;
 	}
 	
 	public short getGuildAttack()
@@ -430,7 +428,7 @@ public class Player extends MObject<Race>
 	
 	public short getItemDefense()
 	{
-		return mDefense;
+		return defense;
 	}
 	
 	public short getGuildDefense()
@@ -730,7 +728,7 @@ public class Player extends MObject<Race>
 		if(newRace == null)
 			return;
 		
-		mType = newRace;
+		type = newRace;
 		raceID = newRace.getRaceID();
 	}
     
@@ -750,9 +748,9 @@ public class Player extends MObject<Race>
      */
 	public void setNaturalStat(Stats statType, byte newStatVal)
 	{
-		byte min = (mType == null) ? Stats.MINIMUMVALUE : mType.getBaseStat(statType, true);
-		byte max = (mType == null) ? Stats.MAXIMUMVALUE : (byte)(mType.getBaseStat(statType, false) + Stats.MAXIMUMEXTENDED);
-		mStats[statType.value()] = Util.FITBYTE(newStatVal, min, max);
+		byte min = (type == null) ? Stats.MINIMUMVALUE : type.getBaseStat(statType, true);
+		byte max = (type == null) ? Stats.MAXIMUMVALUE : (byte)(type.getBaseStat(statType, false) + Stats.MAXIMUMEXTENDED);
+		stats[statType.value()] = Util.FITBYTE(newStatVal, min, max);
 	}
 	
 	/**
@@ -766,12 +764,12 @@ public class Player extends MObject<Race>
 	public boolean changeNaturalStats(Stats statType, byte newStatVal)
 	{
 		boolean success;
-		if(mStats[statType.value()] + newStatVal < mType.getBaseStat(statType, true) || mStats[statType.value()] + newStatVal > mType.getBaseStat(statType, false) + Stats.MAXIMUMEXTENDED)
+		if(stats[statType.value()] + newStatVal < type.getBaseStat(statType, true) || stats[statType.value()] + newStatVal > type.getBaseStat(statType, false) + Stats.MAXIMUMEXTENDED)
 			success = false;
 		else
 			success = true;
         
-		mStats[statType.value()] = Util.FITBYTE(mStats[statType.value()] + newStatVal, mType.getBaseStat(statType, true), mType.getBaseStat(statType, false) + Stats.MAXIMUMEXTENDED);
+		stats[statType.value()] = Util.FITBYTE(stats[statType.value()] + newStatVal, type.getBaseStat(statType, true), type.getBaseStat(statType, false) + Stats.MAXIMUMEXTENDED);
         return success;
 	}
 	
@@ -854,33 +852,33 @@ public class Player extends MObject<Race>
 		{
 		case Drowning:
 			if(isStateOn)
-				postMessage(mName + "is drowning!");
+				postMessage(name + "is drowning!");
 			break;
 		case Dead:
 			if(isStateOn)
-				postMessage(mName + "has died.");
+				postMessage(name + "has died.");
 			else
-				postMessage(mName + "has been resurrected.");
+				postMessage(name + "has been resurrected.");
 			break;
 		case Levitating:
 			if(isStateOn)
-				postMessage(mName + "is floating.");
+				postMessage(name + "is floating.");
 			break;
 		case Poisoned:
 			if(isStateOn)
-				postMessage(mName + "is poisoned.");
+				postMessage(name + "is poisoned.");
 			break;
 		case Stoned:
 			if(isStateOn)
-				postMessage(mName + "is stoned.");
+				postMessage(name + "is stoned.");
 			break;
 		case Paralyzed:
 			if(isStateOn)
-				postMessage(mName + "can't move!");
+				postMessage(name + "can't move!");
 			break;
 		case Diseased:
 			if(isStateOn)
-				postMessage(mName + "is diseased.");
+				postMessage(name + "is diseased.");
 			break;
 		case InDejenol:
 			if(isStateOn)
@@ -974,7 +972,7 @@ public class Player extends MObject<Race>
 	 */
 	public void setItemAttack(short newItemAttack)
 	{
-		mAttack = Util.FITSHORT(newItemAttack, 0, Short.MAX_VALUE);
+		attack = Util.FITSHORT(newItemAttack, 0, Short.MAX_VALUE);
 	}
 	
 	/**
@@ -983,7 +981,7 @@ public class Player extends MObject<Race>
 	 */
 	public void setItemDefense(short newItemDefense)
 	{
-		mDefense = Util.FITSHORT(newItemDefense, 0, Short.MAX_VALUE);
+		defense = Util.FITSHORT(newItemDefense, 0, Short.MAX_VALUE);
 	}
 	
 	/**
@@ -992,7 +990,7 @@ public class Player extends MObject<Race>
 	 */
 	public void changeItemAttack(short itemAttackAdj)
 	{
-		mAttack = Util.FITSHORT(mAttack + itemAttackAdj, 0, Short.MAX_VALUE);
+		attack = Util.FITSHORT(attack + itemAttackAdj, 0, Short.MAX_VALUE);
 	}
 	
 	/**
@@ -1001,7 +999,7 @@ public class Player extends MObject<Race>
 	 */
 	public void changeItemDefense(short itemDefenseAdj)
 	{
-		mDefense = Util.FITSHORT(mDefense + itemDefenseAdj, 0, Short.MAX_VALUE);
+		defense = Util.FITSHORT(defense + itemDefenseAdj, 0, Short.MAX_VALUE);
 	}
 	
 	/**
@@ -1167,7 +1165,7 @@ public class Player extends MObject<Race>
 		weeks = (short)(newAge / 7);
 		newAge %= 7;
 		
-		String ageString = mName + " has aged ";
+		String ageString = name + " has aged ";
 		if(years != 0)
 			ageString += years + " years ";
 		if(weeks != 0)
@@ -1189,7 +1187,7 @@ public class Player extends MObject<Race>
 	 */
 	private void checkNaturalDeath()
 	{
-		short maxAge = mType.getMaxAge();
+		short maxAge = type.getMaxAge();
 		
 		int diff = maxAge - (age / 365);
 		
@@ -1343,7 +1341,7 @@ public class Player extends MObject<Race>
 		
 		// Can't equip if the player is incapable of equipping.
 		for(Stats st : Stats.values())
-			if(tItem.getStatRequirement(st) > this.getTotalStat(st))
+			if(tItem.getStat(st) > this.getTotalStat(st))
 				return false;
 		
 		// Can't equip if guild doesn't allow it.
@@ -1387,9 +1385,9 @@ public class Player extends MObject<Race>
             return false;
         
         // check each items stat requirement against the players natural stat.
-        for(byte i = 0; i < mStats.length; i++)
+        for(byte i = 0; i < stats.length; i++)
         {
-            if(items[itemIndex].getItem().getStatAdjustment(Stats.type(i)) > mStats[i])
+            if(items[itemIndex].getItem().getStatAdjustment(Stats.type(i)) > stats[i])
                 return false;
         }
         
@@ -1437,7 +1435,7 @@ public class Player extends MObject<Race>
 				
 				// Can't equip if the player is incapable of equipping.
 				for(Stats st : Stats.values())
-					if(tItem.getItem().getStatRequirement(st) > this.getTotalStat(st))
+					if(tItem.getItem().getStat(st) > this.getTotalStat(st))
 						canEquip = false;
 				
 				// Can't equip if guild doesn't allow it.
@@ -1780,7 +1778,7 @@ public class Player extends MObject<Race>
 		{
 			states[PlayerState.LostLocation.value()][STATENATURAL] = (random.nextDouble() * 100) > (chanceOfDetection() / visited / (coords.getZ() / 2));
 			if(states[PlayerState.LostLocation.value()][STATENATURAL])
-				postMessage(mName + " is lost!");
+				postMessage(name + " is lost!");
 		}
 		
 		if(states[PlayerState.LostLocation.value()][STATENATURAL])
@@ -1807,7 +1805,7 @@ public class Player extends MObject<Race>
 		{
 			states[PlayerState.LostLevel.value()][STATENATURAL] = ((random.nextDouble() * 100) < chanceOfDetection());
 			if(!states[PlayerState.LostLevel.value()][STATENATURAL])
-				postMessage(mName + " is on level " + coords.getZ());
+				postMessage(name + " is on level " + coords.getZ());
 		}
 		else if(states[PlayerState.LostDirection.value()][STATENATURAL])
 		{
@@ -1817,16 +1815,16 @@ public class Player extends MObject<Race>
 				switch(coords.getDirection())
 				{
 				case North:
-					postMessage(mName + " is facing north.");
+					postMessage(name + " is facing north.");
 					break;
 				case East:
-					postMessage(mName + " is facing east.");
+					postMessage(name + " is facing east.");
 					break;
 				case South:
-					postMessage(mName + " is facing south.");
+					postMessage(name + " is facing south.");
 					break;
 				case West:
-					postMessage(mName + " is facing west.");
+					postMessage(name + " is facing west.");
 					break;
 				}
 			}
@@ -1835,7 +1833,7 @@ public class Player extends MObject<Race>
 		{
 			states[PlayerState.LostLocation.value()][STATENATURAL] = ((random.nextDouble() * 100) < chanceOfDetection());
 			if(!states[PlayerState.LostLocation.value()][STATENATURAL])
-				postMessage(mName + " is at " + coords.getX() + ", " + coords.getY());
+				postMessage(name + " is at " + coords.getX() + ", " + coords.getY());
 		}
 	}
 	
@@ -1855,9 +1853,9 @@ public class Player extends MObject<Race>
 	public void sayHello()
 	{
 		if(isInState(PlayerState.Dead))
-			postMessage(mName + " is dead...");
+			postMessage(name + " is dead...");
 		else
-			postMessage(mName + ": Hello!");
+			postMessage(name + ": Hello!");
 		
 		// TODO Play appropriate sounds.
 	}
@@ -1913,7 +1911,7 @@ public class Player extends MObject<Race>
 		if(!isInState(PlayerState.SeeInvisible) && monster.getMonster().hasAbility(MonsterAbility.Invisible))
 			DamMod /= 2;
 		
-		DamMod += (mType.getSize().value() - monster.getMonster().getSize().value()) * 0.1;
+		DamMod += (type.getSize().value() - monster.getMonster().getSize().value()) * 0.1;
 		
 		if(DamMod > 1)
 			DamMod = DamMod - (Math.pow(Math.log(DamMod), 2.0));
@@ -1996,7 +1994,7 @@ public class Player extends MObject<Race>
         try
         {
         	// Write ID size: 0
-            dos.writeShort(mID);
+            dos.writeShort(ID);
             
             // create a 1 dimensional boolean array the same size
             // as the entire 2D states array.
@@ -2032,9 +2030,9 @@ public class Player extends MObject<Race>
             dos.writeByte(alignment.value());
             
             // Write natural stats. size = 27
-            dos.writeInt(mStats.length);
-            for(byte i = 0; i < mStats.length; i++)
-                dos.writeByte(mStats[i]);
+            dos.writeInt(stats.length);
+            for(byte i = 0; i < stats.length; i++)
+                dos.writeByte(stats[i]);
             
             dos.writeInt(acquiredResistance.length); 
             dos.writeInt(acquiredResistance[0].length);
@@ -2057,8 +2055,8 @@ public class Player extends MObject<Race>
             		dos.writeByte(equipment[i]);
             }
             
-            dos.writeShort(mAttack);
-            dos.writeShort(mDefense);
+            dos.writeShort(attack);
+            dos.writeShort(defense);
             
             dos.writeInt(items.length);
             for(byte i = 0; i < items.length; i++)
@@ -2128,11 +2126,11 @@ public class Player extends MObject<Race>
             for(int i = 0; i < sanctuary.length; i++)
             	dos.writeByte(sanctuary[i]);
             
-            dos.writeUTF(mName);
+            dos.writeUTF(name);
         }
         catch(Exception e)
         {
-            System.err.println("Player write error. PlayerID : " + mID + " Error: " +  e);
+            System.err.println("Player write error. PlayerID : " + ID + " Error: " +  e);
             return false;
         }
 		return true;
@@ -2398,11 +2396,18 @@ public class Player extends MObject<Race>
     	
     	if(tRace == null)
     	{
-    		System.err.println("Error: Player " + mID + " race no longer exists.");
+    		System.err.println("Error: Player " + ID + " race no longer exists.");
     		return false;
     	}
     	
     	setRace(tRace);
     	return true;
-    }	
+    }
+
+	@Override
+	public String generateDescription(boolean html)
+	{
+		// TODO Auto-generated method stub
+		return description;
+	}	
 }
