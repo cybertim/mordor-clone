@@ -1,20 +1,12 @@
 package mordorGame;
 
 import java.awt.BorderLayout;
-import java.awt.GridLayout;
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DropTarget;
-import java.awt.dnd.DropTargetDragEvent;
-import java.awt.dnd.DropTargetDropEvent;
-import java.awt.dnd.DropTargetEvent;
-import java.awt.dnd.DropTargetListener;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import structures.ListIter;
-import structures.ListNode;
 
 import mordorData.DataBank;
 import mordorData.GuildReference;
@@ -26,7 +18,6 @@ import mordorEnums.BodyParts;
 import mordorEnums.MonsterAbility;
 import mordorEnums.Resistance;
 import mordorEnums.Stats;
-import mordorGame.ItemLabel.DTListener;
 import mordorHelpers.Util;
 
 public class MiscPane extends JPanel

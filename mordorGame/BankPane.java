@@ -23,6 +23,7 @@ import mordorData.DataBank;
 import mordorData.ItemInstance;
 import mordorData.Player;
 import mordorHelpers.Util;
+import mordorMessenger.MordorMessengerDestination;
 
 public class BankPane extends JPanel implements ActionListener
 {
@@ -222,7 +223,7 @@ public class BankPane extends JPanel implements ActionListener
 		{
 			// If an item is selected
 			if(liItemList.getSelectedValue() != null)
-				infoPane.showItem((ItemInstance)liItemList.getSelectedValue());
+				dataBank.getMessenger().postThing(MordorMessengerDestination.ItemInfo, liItemList.getSelectedValue());
 		}
 		else if(e.getSource() == jbRemoveItem)
 		{

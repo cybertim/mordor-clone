@@ -1501,8 +1501,34 @@ public class Player extends MObject<Race>
 		}
 	}
 	
+	/**
+	 * Swaps the items between two indices including handling non-existent items
+	 * @param indexA
+	 * @param indexB
+	 */
 	public void swapItems(byte indexA, byte indexB)
 	{
+		if(indexA == Util.NOTHING && indexB == Util.NOTHING)
+			return;
+		else if(indexA == Util.NOTHING)
+		{
+			if(isItemEquipped(indexB))
+				equipment[items[indexB].getItem().getItemType().getEquippingPart().value()] = indexA;
+			
+			items[indexA] = items[indexB];
+			
+			return;
+		}
+		else if(indexB == Util.NOTHING)
+		{
+			if(isItemEquipped(indexA))
+				equipment[items[indexA].getItem().getItemType().getEquippingPart().value()] = indexB;
+			
+			items[indexB] = items[indexA];
+			
+			return;
+		}
+		
 		ItemInstance tItem = items[indexA];
 		
 		boolean aEquip = isItemEquipped(indexA);
@@ -1675,12 +1701,32 @@ public class Player extends MObject<Race>
      */
     public boolean addItem(ItemInstance newItem)
     {
+    	if(newItem == null)
+    		return true;
+    	if(getItemIndex(newItem) != Util.NOTHING)
+    		return false;
+    	
     	for(byte i = 0; i < items.length; i++)
+    	{
     		if(items[i] == null)
     		{
     			items[i] = newItem;
     			return true;
     		}
+    	}
+    	return false;
+    }
+    
+    /**
+     * Determine if the player has any empty inventory slots.
+     * @return true if there is at least one empty slots
+     */
+    public boolean hasEmptyInventorySlots()
+    {
+    	for(byte i = 0; i < items.length; i++)
+    		if(items[i] == null)
+    			return true;
+    	
     	return false;
     }
     

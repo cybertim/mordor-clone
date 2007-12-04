@@ -20,10 +20,12 @@ import java.awt.dnd.InvalidDnDOperationException;
 import javax.swing.JLabel;
 
 import mordorData.ItemInstance;
+import mordorHelpers.Util;
 
 public class ItemLabel extends JLabel
 {
 	protected ItemInstance item;
+	protected byte index;
 	protected String text;
 	
 	protected DragSource dragSource;
@@ -40,7 +42,7 @@ public class ItemLabel extends JLabel
 		{
 			try
 			{
-			    Transferable transferable = new ItemInstanceTransferable(item);
+			    Transferable transferable = new ItemInstanceTransferable(item, index);
 			    
 			    //initial cursor, transferable, dsource listener      
 			    dge.startDrag(DragSource.DefaultCopyNoDrop, transferable, dsListener);
@@ -163,7 +165,7 @@ public class ItemLabel extends JLabel
 				Object data = dtde.getTransferable().getTransferData(ItemInstanceTransferable.itemInstanceFlavor);
 					
 				if(data != null)
-					ItemLabel.this.changeItem((ItemInstance)data);
+					ItemLabel.this.changeItem((ItemInstanceTransferable.ItemInstanceBox)data);
 				else
 					ItemLabel.this.changeItem(null);
 			}
@@ -198,7 +200,7 @@ public class ItemLabel extends JLabel
 		}
 	}  
 
-	public ItemLabel(ItemInstance newItem)
+	public ItemLabel(ItemInstance newItem, byte newIndex)
 	{
 		dragSource = DragSource.getDefaultDragSource();
 		dgListener = new DGListener();
@@ -210,25 +212,30 @@ public class ItemLabel extends JLabel
 		dropTarget = new DropTarget(this, this.action, dtListener, true);
 		
 		item = newItem;
+		index = newIndex;
 		
 		if(item != null)
-			setText(item.getItem().getName());
+			setText(index + ". " + item.toString());
 		else
-			setText("Nothing");
+			setText(index + ".");
 	}
 	
-	public void changeItem(ItemInstance newItem)
+	public void changeItem(ItemInstanceTransferable.ItemInstanceBox box)
 	{
-		item = newItem;
+		if(box == null)
+		{
+			item = null;
+			index = Util.NOTHING;
+		}
+		else
+		{
+			item = box.item;
+			index = box.index;
+		}
 		
 		if(item != null)
-			setText(item.getItem().getName());
+			setText(index + ". " + item.toString());
 		else
-			setText("Nothing");
-	}
-	
-	public String getText()
-	{
-		return (item == null) ? "Nothing" : item.getItem().getName();
+			setText(index + ".");
 	}
 }

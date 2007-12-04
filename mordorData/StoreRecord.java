@@ -6,6 +6,7 @@ import java.io.DataOutputStream;
 import structures.LinkedList;
 
 import mordorEnums.Alignment;
+import mordorEnums.Identification;
 import mordorHelpers.Util;
 
 /**
@@ -132,15 +133,39 @@ public class StoreRecord
 		
 		return false;
 	}
-
+	
 	/**
-	 * Decrements an item. Player buying is handled in the store, not in the record.
-	 * @param nItem
+	 * Retrieve a copy of the item of the specified alignment.
+	 * @param align
+	 * @return ItemInstance or null if no copies left (should be checking getCount(al)
 	 */
-	public void removeItem(ItemInstance nItem)
+	public ItemInstance removeItem(Alignment align)
 	{
-		if(!item.isStoreItem() && in_shop[nItem.getAlignment().value()] < MAXITEMSPERALIGNMENT && in_shop[nItem.getAlignment().value()] > 0)
-			in_shop[nItem.getAlignment().value()]--;
+		ItemInstance newItem = item.createInstance();
+		
+		if(item.isStoreItem())
+		{
+			newItem.setAlignment(align);
+			return newItem;
+		}
+		
+		// If none of the item exists, return null;
+		if((item.isUnaligned() && in_shop[Alignment.Neutral.value()] < 1) || (in_shop[align.value()] < 1))
+			return null;
+			
+		// Unaligned items are given Neutral alignment for bookkeeping.
+		if(item.isUnaligned())
+		{
+			in_shop[Alignment.Neutral.value()]--;
+			newItem.setAlignment(Alignment.Neutral);
+		}
+		else
+		{
+			in_shop[align.value()]--;
+			newItem.setAlignment(align);
+		}
+		
+		return newItem;
 	}
 	
 	/**
@@ -157,7 +182,7 @@ public class StoreRecord
 	
 	/**
 	 * Based on the number of items of the given alignment in the store,
-	 * calculate the selling price of the next item of that type.
+	 * calculate the next price the store will sell the item at.
 	 * @return long
 	 */
 	public long nextSellCost(Alignment align)
@@ -165,24 +190,25 @@ public class StoreRecord
 		if(item.isStoreItem())
 			return item.getItemBaseValue();
 		
-		return (long)(nextSellCost(align) * Util.STORE_SELL_MARKUP);
+		byte count = (item.isUnaligned()) ? in_shop[Alignment.Neutral.value()] : in_shop[align.value()];
+		
+		long cost = item.getItemBaseValue();
+		cost = (long)(cost * (1.0 - (Util.STORE_BUT_UNITADJUST * count)));
+		cost *= Util.STORE_SELL_MARKUP;
+		
+		return cost;
 	}
 	
 	/**
 	 * Based on the number of the alignment given in the store, calculate
-	 * the next price the store will pay for the item. Note: This is the
-	 * item with its default number of charges. It should be corrected
-	 * in case the player is trying to sell something with 1 charge left
-	 * that normally has several.
+	 * the next price the store will pay for one copy of this item.
+	 * 
 	 * @param align	Alignment
 	 * @return	long
 	 */
-	public long nextBuyCost(Alignment align)
+	public long nextBuyCost(ItemInstance sellItem)
 	{
-		// Should be between full cost (0 in store) and 1/3 (?) max items.
-		// Could also jsut be 1/# in store + 1, that seems too steep right away.
-		// Alternatively, if it is a store item, buy at 75% value.
-		return (item.isStoreItem()) ? (long)(item.getItemBaseValue() * 0.75) : (long)(item.getItemBaseValue() * (1 / (in_shop[align.value()] + 1)));
+		return (item.isStoreItem()) ? (long)(sellItem.currentSellValue()) : (long)(sellItem.currentSellValue() * (1.0 / (in_shop[sellItem.getAlignment().value()] + 1)));
 	}
 	
 	/**

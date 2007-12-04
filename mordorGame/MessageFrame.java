@@ -4,6 +4,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import mordorMessenger.MordorMessenger;
+import mordorMessenger.MordorMessengerDestination;
 import mordorMessenger.MordorMessengerEvent;
 import mordorMessenger.MordorMessengerListener;
 
@@ -27,8 +28,10 @@ public class MessageFrame extends JInternalFrame implements MordorMessengerListe
 	
 	public void messagePosted(MordorMessengerEvent message)
 	{
-		messageWindow.insert(message.getMessage() + "\n", 0);
-		messageWindow.setCaretPosition(0);
+		if(message.getDestination() == MordorMessengerDestination.MessagePane)
+		{
+			messageWindow.insert(message.getMessage() + "\n", 0);
+			messageWindow.setCaretPosition(0);
+		}
 	}
-
 }

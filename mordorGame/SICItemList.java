@@ -10,33 +10,31 @@ import javax.swing.JPanel;
 import javax.swing.Scrollable;
 
 import mordorData.Player;
+import mordorMessenger.MordorMessenger;
+import mordorMessenger.MordorMessengerDestination;
+import mordorMessenger.MordorMessengerEvent;
+import mordorMessenger.MordorMessengerListener;
 
-public class SICItemList extends JPanel implements Scrollable
+public class SICItemList extends JPanel implements Scrollable, MordorMessengerListener
 {
-	//private SICItemPanel[] items;
 	private SICItemLabel[] items;
 	private Player player;
 	private byte selectedIndex;
 	
-	//private ItemInstanceTransferHandler transferHandler;
-	
-	public SICItemList(Player nPlayer)
+	public SICItemList(Player nPlayer, MordorMessenger messenger)
 	{
 		player = nPlayer;
-		//transferHandler = new ItemInstanceTransferHandler();
+		messenger.addMordorMessengerListener(this);
 		
 		GridLayout nLayout = new GridLayout(Player.MAXITEMSONHAND, 1);
 		nLayout.setHgap(0);
 		
 		setLayout(nLayout);
 		
-		//items = new SICItemPanel[Player.MAXITEMSONHAND];
 		items = new SICItemLabel[Player.MAXITEMSONHAND];
 		for(byte i = 0; i < Player.MAXITEMSONHAND; i++)
 		{
-			//items[i] = new SICItemPanel(i, player.getItem(i), player.isItemEquipped(i), this);
 			items[i] = new SICItemLabel(i, player, this);
-			//items[i].setTransferHandler(transferHandler);
 			
 			add(items[i]);
 		}
@@ -81,7 +79,6 @@ public class SICItemList extends JPanel implements Scrollable
 	{
 		for(byte i = 0; i < items.length; i++)
 			items[i].updatePanel();
-			//items[i].changeItem(player.getItem(i), player.isItemEquipped(i));
 	}
 	
 	/**
@@ -89,7 +86,6 @@ public class SICItemList extends JPanel implements Scrollable
 	 */
 	public void updateSelectedItem()
 	{
-		//items[selectedIndex].changeItem(player.getItem(selectedIndex), player.isItemEquipped(selectedIndex));
 		items[selectedIndex].changeItem(player.getItem(selectedIndex));
 	}
 	
@@ -122,5 +118,11 @@ public class SICItemList extends JPanel implements Scrollable
 			int orientation, int direction) {
 		// TODO Auto-generated method stub
 		return 10;
+	}
+
+	public void messagePosted(MordorMessengerEvent message)
+	{
+		if(message.getDestination() == MordorMessengerDestination.PlayerSIC)
+			updateItems();
 	}
 }

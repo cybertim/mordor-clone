@@ -12,15 +12,22 @@ public class SICItemLabel extends ItemLabel
 
 	public SICItemLabel(byte itemIndex, Player ownPlayer, SICItemList newParent)
 	{
-		super(ownPlayer.getItem(itemIndex));
+		super(ownPlayer.getItem(itemIndex), itemIndex);
 		index = itemIndex;
 		player = ownPlayer;
 		parent = newParent;
+		
+		updatePanel();
 	}
 	
 	public void changeItem(ItemInstance newItem)
 	{
-		player.swapItems(index, player.getItemIndex(newItem));
+		item = newItem;
+	}
+	
+	public void changeItem(ItemInstanceTransferable.ItemInstanceBox box)
+	{
+		player.swapItems(index, box.index);
 		parent.updateItems();
 	}
 	

@@ -14,9 +14,11 @@ import mordorData.DataBank;
 import mordorData.ItemInstance;
 import mordorData.MonsterInstance;
 import mordorData.Player;
-import mordorGame.ItemLabel.DTListener;
+import mordorMessenger.MordorMessengerDestination;
+import mordorMessenger.MordorMessengerEvent;
+import mordorMessenger.MordorMessengerListener;
 
-public class InformationPanel extends JInternalFrame
+public class InformationPanel extends JInternalFrame implements MordorMessengerListener
 {
 	private PlayerPane playerPane;
 	private BuffersPane buffersPane;
@@ -93,7 +95,7 @@ public class InformationPanel extends JInternalFrame
 				Object data = dtde.getTransferable().getTransferData(ItemInstanceTransferable.itemInstanceFlavor);
 					
 				if(data != null)
-					InformationPanel.this.showItem((ItemInstance)data);
+					InformationPanel.this.showItem(((ItemInstanceTransferable.ItemInstanceBox)data).item);
 			}
 			catch (Exception e)
 			{
@@ -131,6 +133,7 @@ public class InformationPanel extends JInternalFrame
 		super(title, first, second, third, fourth);
 		tabs = new JTabbedPane();
 		databank = theDB;
+		databank.getMessenger().addMordorMessengerListener(this);
 
 		dtListener = new DTListener();
 		dropTarget = new DropTarget(this, this.action, dtListener, true);
@@ -168,5 +171,15 @@ public class InformationPanel extends JInternalFrame
 		buffersPane.updatePanel(player);
 		resistPane.updatePanel(player);
 		miscPane.updatePanel();
+	}
+
+	public void messagePosted(MordorMessengerEvent message)
+	{
+		if(message.getThing() == null)
+			return;
+		else if(message.getDestination() == MordorMessengerDestination.ItemInfo)
+			showItem((ItemInstance)message.getThing());
+		else if(message.getDestination() == MordorMessengerDestination.MonsterInfo)
+			showMonster(databank, (MonsterInstance)message.getThing(), MiscPane.MONHEAD_COMPANION);
 	}
 }

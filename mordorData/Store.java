@@ -5,10 +5,12 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 
 import mordorEnums.Alignment;
+import mordorEnums.Identification;
+import mordorEnums.ItemTypes;
+import mordorHelpers.Util;
+import mordorMessenger.MordorMessenger;
 import structures.LinkedList;
 import structures.ListIter;
-import structures.ListNode;
-import structures.QuadNode;
 import structures.SkipIter;
 import structures.SkipList;
 
@@ -20,8 +22,6 @@ import structures.SkipList;
 public class Store
 {
 	private SkipList<StoreRecord> storeInventory;
-	
-	/* TODO: Constants for store? e.g. realign rate, uncurse rate */
 	
 	Store()
 	{
@@ -46,24 +46,126 @@ public class Store
 	}
 	
 	/**
+	 * Retrieve the record for a specific item.
+	 * @param item
+	 * @return StoreRecord or null if no record exists.
+	 */
+	public StoreRecord findRecord(Item item)
+	{
+		return storeInventory.find((int)item.getID());
+	}
+	
+	/**
 	 * Cause buyer to purchase item of align from the store, if possible.
 	 * @param buyer	Player buying the item.
 	 * @param item	Item she wants to buy
 	 * @param align	Alignment she wants it in.
+	 * @return true if a successful sale
 	 */
-	public void buyItemFromStore(Player buyer, Item item, Alignment align)
+	public boolean buyItemFromStore(Player buyer, ItemInstance item, MordorMessenger message)
 	{
+		if(item == null)
+			return false;
 		
+		StoreRecord record = findRecord(item.getItem());
+		
+		// There is no record!
+		if(record == null)
+			return false;
+		
+		// Player is too poor.
+		if(record.nextSellCost(item.getAlignment()) > buyer.getTotalGold())
+		{
+			message.postMessage("Not enough gold.");
+			return false;
+		}
+		
+		// Player has no place to store the item
+		if(!buyer.hasEmptyInventorySlots())
+		{
+			message.postMessage("No space in inventory.");
+			return false;
+		}
+		
+		// Record doesn't have enough copies
+		if(!record.alignmentInStore(item.getAlignment()))
+			return false;
+
+		// Spend the gold
+		buyer.spendGold(record.nextSellCost(item.getAlignment()));
+		// Remove a copy of the item
+		ItemInstance newItem = record.removeItem(item.getAlignment());
+		newItem.setIDLevel(Identification.Everything);
+		if(record.isEmptyRecord())
+			storeInventory.remove((int)record.getItemID());
+		// Add the item.
+		buyer.addItem(newItem);
+	
+		return true;
 	}
 	
 	/**
 	 * Cause seller to sell item.  
 	 * @param seller
 	 * @param item
+	 * @return true if a successful sale
 	 */
-	public void sellItemToStore(Player seller, ItemInstance item)
+	public boolean sellItemToStore(Player seller, ItemInstance item, MordorMessenger message)
 	{
+		if(item == null)
+			return false;
 		
+		// We don't buy equipped items.
+		if(seller.isItemEquipped(item))
+		{
+			message.postMessage("Can't sell equipped items.");
+			return false;
+		}
+		
+		// We don't buy crests
+		if(item.getItem().getType() == ItemTypes.GuildCrest)
+		{
+			message.postMessage("Can't sell guild crests.");
+			return false;
+		}
+		
+		if(item.getItem().getItemBaseValue() < 1)
+		{
+			message.postMessage("Can't sell that item.");
+			return false;
+		}
+		
+		StoreRecord record = storeInventory.find((int)item.getItemID());
+		long sellValue = item.getItem().getItemBaseValue();
+		if(record == null)
+		{
+			// No record? Create one then.
+			record = new StoreRecord(item);
+			storeInventory.insert(record, (int)record.getItemID());
+		}
+		else
+		{
+			if(item.isCursed() && item.getIDLevel() == Identification.Everything)
+				sellValue = 1;
+			else
+			{
+				// Next 'full id' cost
+				sellValue = record.nextBuyCost(item);
+				// Adjustment based on how much the player has id'ed the item.
+				sellValue *= (long)(Util.STORE_SELL_ID_ADJUST * (item.getIDLevel().value() + 1));
+			}
+
+			record.addItem(item);
+		}
+		
+		if(item.getStackSize() > 1)
+			item.removeFromStack();
+		else
+			seller.removeItem(item);
+		
+		seller.changeGoldOnHand(sellValue);
+		
+		return true;
 	}
 	
 	/**
@@ -83,6 +185,17 @@ public class Store
 	public SkipList<StoreRecord> getInventory()
 	{
 		return storeInventory;
+	}
+	
+	/**
+	 * Clear any empty records.
+	 */
+	public void clearEmptyRecords()
+	{
+		SkipIter<StoreRecord> record = storeInventory.getIterator();
+		while(record.next())
+			if(record.element().isEmptyRecord())
+				storeInventory.remove(record.key());
 	}
 	
 	/**

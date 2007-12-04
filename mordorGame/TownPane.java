@@ -6,12 +6,10 @@ import java.awt.event.ActionListener;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import mordorData.DataBank;
 import mordorData.ImageBank;
-import mordorEditor.MapRoomPanel;
 
 public class TownPane extends JPanel implements ActionListener 
 {
@@ -66,7 +64,7 @@ public class TownPane extends JPanel implements ActionListener
 		// TODO Auto-generated method stub
 		if(e.getSource() == jbStore)
 		{
-			
+			parent.enterStore();
 		}
 		else if(e.getSource() == jbMorgue)
 		{

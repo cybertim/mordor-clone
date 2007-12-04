@@ -74,11 +74,11 @@ public class ItemInstance
 	
 	/**
 	 * Retrieve the alignment of this specific item.
-	 * @return Alignment
+	 * @return Alignment, Neutral always if  unaligned.
 	 */
 	public Alignment getAlignment()
 	{
-		return alignment;
+		return (item.isUnaligned()) ? Alignment.Neutral : alignment;
 	}
 	
 	/**
@@ -193,6 +193,18 @@ public class ItemInstance
 		return idLevel;
 	}
 	
+	/**
+	 * Retrieve the current resale value of the item.
+	 * @return long
+	 */
+	public long currentSellValue()
+	{
+		if(idLevel == Identification.Everything && cursed)
+			return 1;
+		
+		return (long)(((Util.STORE_SELL_ID_ADJUST * (idLevel.value() + 1.0)) * item.getItemBaseValue()) * 0.75);
+	}
+	
 	public void setItemID(short nItemID)
 	{
 		itemID = nItemID;
@@ -303,15 +315,20 @@ public class ItemInstance
 		case Little:
 			return item.getItemType().name();
 		case Lots:
+			return item.getName();
 		case Everything:
 			break;
 		}
 
-		return item.getName();
+		String text = item.getName();
+		text += (item.isUnaligned()) ? "" : " " + this.alignment.shortName() + " "; 
+		text += (item.getSpellCasts() > 0) ? " {" + item.getSpellCasts() + "} " : "";
+		text += (stackSize > 1) ? " [" + stackSize + "] " : "";
+		return text;
 	}
 	
 	public boolean equivalent(ItemInstance otherItem)
 	{
-		return (cursed == otherItem.cursed && alignment == otherItem.alignment && itemID == otherItem.itemID && idLevel == otherItem.idLevel);
+		return (otherItem != null && cursed == otherItem.cursed && alignment == otherItem.alignment && itemID == otherItem.itemID && idLevel == otherItem.idLevel);
 	}
 }

@@ -17,8 +17,14 @@ import mordorData.ItemInstance;
  */
 public class ItemInstanceTransferable implements Transferable
 {
-	private ItemInstance item;
+	private ItemInstanceBox box;
 	public static DataFlavor itemInstanceFlavor = null;
+	
+	public class ItemInstanceBox
+	{
+		public ItemInstance item;
+		public byte index;
+	}
 	
 	static
 	{
@@ -32,9 +38,11 @@ public class ItemInstanceTransferable implements Transferable
 		}
 	}
 	
-	public ItemInstanceTransferable(ItemInstance transferItem)
+	public ItemInstanceTransferable(ItemInstance transferItem, byte newIndex)
 	{
-		item = transferItem;
+		box = new ItemInstanceBox();
+		box.index = newIndex;
+		box.item = transferItem;
 	}
 
 	public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException
@@ -42,7 +50,7 @@ public class ItemInstanceTransferable implements Transferable
 		if(!isDataFlavorSupported(flavor))
 			throw new UnsupportedFlavorException(flavor);
 		
-		return item;
+		return box;
 	}
 
 	public DataFlavor[] getTransferDataFlavors()

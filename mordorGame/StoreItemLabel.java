@@ -8,10 +8,11 @@ import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 
 import javax.swing.JLabel;
+import javax.swing.JTextField;
 
 import mordorData.ItemInstance;
 
-public class StoreItemLabel extends JLabel
+public class StoreItemLabel extends JTextField
 {
 	private ItemInstance item;
 	private StorePane parent;
@@ -22,6 +23,9 @@ public class StoreItemLabel extends JLabel
 	
 	protected class DTListener implements DropTargetListener
 	{
+		private StoreItemLabel owner;
+		
+		public DTListener(StoreItemLabel newOwner) { owner = newOwner; }
 
 		public void dragEnter(DropTargetDragEvent dtde)
 		{
@@ -82,13 +86,13 @@ public class StoreItemLabel extends JLabel
 				Object data = dtde.getTransferable().getTransferData(ItemInstanceTransferable.itemInstanceFlavor);
 					
 				if(data != null)
-					StoreItemLabel.this.changeItem((ItemInstance)data);
+					owner.changeItem(((ItemInstanceTransferable.ItemInstanceBox)data).item);
 				else
-					StoreItemLabel.this.changeItem(null);
+					owner.changeItem(null);
 			}
 			catch (Exception e)
 			{
-				System.err.println("DTListener (ItemLabel) error:" + e);
+				System.err.println("DTListener (StoreItemLabel) error:" + e);
 			}
 		}
 
@@ -119,9 +123,12 @@ public class StoreItemLabel extends JLabel
 	
 	public StoreItemLabel(StorePane theParent)
 	{
+		super(15);
 		parent = theParent;
 		
-		dtListener = new DTListener();
+		this.setEditable(false);
+		
+		dtListener = new DTListener(this);
 		dropTarget = new DropTarget(this, this.action, dtListener, true);
 	}
 	

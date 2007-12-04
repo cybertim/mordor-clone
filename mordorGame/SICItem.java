@@ -17,6 +17,7 @@ import javax.swing.JScrollPane;
 import mordorData.DataBank;
 import mordorData.ItemInstance;
 import mordorData.Player;
+import mordorMessenger.MordorMessengerDestination;
 
 public class SICItem extends JPanel implements ActionListener
 {
@@ -54,7 +55,7 @@ public class SICItem extends JPanel implements ActionListener
 		bPane.add(jbInfo);
 		
 		JPanel lPane = new JPanel();
-		items = new SICItemList(player);
+		items = new SICItemList(player, dataBank.getMessenger());
 		add(new JScrollPane(items));
 		
 		add(lPane, BorderLayout.WEST);
@@ -63,7 +64,7 @@ public class SICItem extends JPanel implements ActionListener
 
 	public void changePlayer(Player nPlayer)
 	{
-		if(player == null)
+		if(nPlayer == null)
 			return;
 		
 		player = nPlayer;
@@ -129,8 +130,10 @@ public class SICItem extends JPanel implements ActionListener
 		else if(e.getSource() == jbInfo)
 		{
 			ItemInstance tItem = getSelectedItem();
+			
 			if(tItem != null)
-				infoPane.showItem(tItem);
+				this.dataBank.getMessenger().postThing(MordorMessengerDestination.ItemInfo, tItem);
+				//infoPane.showItem(tItem);
 			// TODO : Fire a message instead.
 		}
 	}

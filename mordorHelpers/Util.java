@@ -4,9 +4,7 @@ import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
-import mordorEnums.BodyParts;
 import mordorEnums.Identification;
-import mordorEnums.ItemTypes;
 
 public final class Util
 {
@@ -34,13 +32,20 @@ public final class Util
 	/* Rooms */
 	
 	/* Store */
+	
+	/** Multiplier for percentage of cost to ID. = 0.25 */
 	public static final double STORE_ID_ADJUSTMENT = 0.25;
-	/** Multiple for cost to adjust an item based on base value */
+	/** Multiplier for cost to adjust an item based on base value */
 	public static final double STORE_ALIGN_ADJUSTMENT = 0.40;
 	public static final double STORE_SELL_MARKUP = 1.25;
-	/** Multiple for selling price of an item based on identification level */
-	public static final double STORE_SELL_ID_ADJUST = 1 / Identification.values().length;
-	public static final double STORE_BUY_MAXADJUSTMENT = 0.25;
+	/** Multiplier for selling price of an item based on identification level */
+	public static final double STORE_SELL_ID_ADJUST = 1.0 / Identification.values().length;
+	/** Minimum multiplier for items with multiple copies in the store */ 
+	public static final double STORE_BUY_MINADJUSTMENT = 0.25;
+	/** Max number of items in a record for each alignment. */
+	public static final byte STORE_MAX_ITEMS_PER_RECORD_ALIGN = 10;
+	/** For every item in a record, how much to decrease its cost. */
+	public static final double STORE_BUT_UNITADJUST = ((1.0 - STORE_BUY_MINADJUSTMENT) / STORE_MAX_ITEMS_PER_RECORD_ALIGN);
 	
 	protected Util()
 	{

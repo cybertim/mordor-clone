@@ -13,7 +13,7 @@ import mordorMessenger.MordorMessenger;
 
 public class Mordor extends JFrame implements ActionListener
 {	
-	private String version = "0.3.4b";
+	private String version = "0.3.5";
 	public String aboutMordor = "<HTML>Mordor Clone of Dejenol<BR>Version" + version + 
 	"<BR><BR>A clone of Mordor: Depths of Dejenol<BR>Created by: August Junkala" + 
 	"<BR>Based on game by:David Allen<BR><BR>" + 
@@ -49,11 +49,9 @@ public class Mordor extends JFrame implements ActionListener
 	
 	private JInternalFrame confinementWindow;
 	private JInternalFrame guildsWindow;
-	private JInternalFrame itemShopWindow;
+	private JInternalFrame storeWindow;
 	private JInternalFrame morgueWindow;
 	private JInternalFrame seerWindow;
-//	private JInternalFrame bankWindow;
-	
 	private JInternalFrame bankWindow;
 	
 	private Timer timer;
@@ -299,12 +297,27 @@ public class Mordor extends JFrame implements ActionListener
 		bankWindow = new JInternalFrame("Bank", false, false, false, false);
 		
 		bankWindow.setContentPane(new BankPane(this, informationWindow, currentPlayer.getPlayer(), sicPane, dataBank));
-		//bankWindow.setSize(300, 300);
 		bankWindow.setLocation(100, 100);
 		bankWindow.pack();
 		bankWindow.setVisible(true);
 		desktop.add(bankWindow);
 		bankWindow.moveToFront();
+	}
+	
+	public void enterStore()
+	{
+		if(storeWindow != null)
+			return;
+		
+		storeWindow = new JInternalFrame("Store", false, false, false);
+		
+		storeWindow.setContentPane(new StorePane(this, currentPlayer.getPlayer(), dataBank));
+		storeWindow.setLocation(100, 100);
+		storeWindow.pack();
+		storeWindow.setSize(storeWindow.getWidth() + 50, storeWindow.getHeight());
+		storeWindow.setVisible(true);
+		desktop.add(storeWindow);
+		storeWindow.moveToFront();
 	}
 	
 	public void exitBank()
@@ -314,6 +327,16 @@ public class Mordor extends JFrame implements ActionListener
 			bankWindow.dispose();
 			desktop.remove(bankWindow);
 			bankWindow = null;
+		}
+	}
+	
+	public void exitStore()
+	{
+		if(storeWindow != null)
+		{
+			storeWindow.dispose();
+			desktop.remove(storeWindow);
+			storeWindow = null;
 		}
 	}
 	
